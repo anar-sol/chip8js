@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "transform": {},
+  "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.18.6",
+    "jest": "^29.0.3"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "sanitize.css": "^13.0.0"
+  }
+}
