@@ -1,64 +1,95 @@
+@use 'sass:color';
+
 @use 'node_modules/sanitize.css/sanitize.css';
 @use 'node_modules/sanitize.css/forms.css';
 @use 'node_modules/sanitize.css/system-ui.css';
 @use 'node_modules/sanitize.css/typography.css';
 
+/* custom font variables */
 @font-face {
     font-family: 'Press Start 2P';
     src: url("./PressStart2P-Regular.ttf") format("truetype");
 }
+$custom-font: 'Press Start 2P';
 
-$primary-color: #0ABDC6;
-$custom-font: 'Press Start 2P', sans-serif;
-
-$background-color: #000505;
+/* colors variables */
+$primary: #0ABDC6;
+$surface: #022527;
+$background: #000505;
 $on-background: rgba(255, 255, 255, 0.93);
 
-$surface: #022527;
+/* spacers */
+$gap: 1rem;
 
-$body-background: $background-color;
-$body-color: $on-background;
+/* border variables*/
+$border: $primary solid 1px;
+$radius: 0.25rem;
 
-$link-color: $primary-color;
+/* breakpoints */
+$breakpoint-md: 48rem;
+$breakpoint-lg: 64rem;
 
-$container-padding-x: 1rem;
-$container-main-max-width: 75rem;
+/* wrapper variables */
+$wrapper-padding-y: 0;
+$wrapper-padding-x: $gap;
+$wrapper-max-width: 75rem;
 
-$header-padding-y: 2rem;
+/* header variables */
+$header-padding-y: $gap * 2;
 $header-padding-x: 0;
 
-$heading-main-font-family: $custom-font;
-$heading-main-font-size: 1.25rem;
-$heading-main-line-height: 1;
-$heading-main-color: $primary-color;
+/* main title variables */
+$main-title-font-family: $custom-font;
+$main-title-font-size: 1.25rem;
+$main-title-line-height: 1;
+$main-title-color: $primary;
 
-$main-padding-y: 2rem;
-$main-padding-x: 0;
+/* main-content variables */
+$main-content-padding-y: $gap;
+$main-content-padding-x: 0;
 
-$chip8-screen-container-border: $primary-color 1px solid;
+/* chip8 variables */
+$chip8-gap: $gap;
+$chip8-gap-small: $gap * 0.5;
+
 $chip8-screen-container-aspect-ratio: 16 / 8;
-$chip8-container-gap: 1rem;
 
-$footer-padding-y: 1rem;
+$chip8-info-max-width: 30rem;
+
+$chip8-control-padding-y: $gap * 0.75;
+$chip8-control-padding-x: $gap * 0.5;
+
+$chip8-key-width: 2.5rem;
+$chip8-key-height: 2.5rem;
+
+/* footer variables */
+$footer-padding-y: $gap;
 $footer-padding-x: 0;
 
+
 body {
-    background-color: $body-background;
+    background-color: $background;
     color: $on-background;
 }
 
 a {
-    color: $link-color;
+    color: $primary;
 }
 
-button {
+button,
+select {
     cursor: pointer;
+
+    &:active,
+    &:hover {
+        opacity: .8;
+    }
 }
 
-.container {
+.wrapper {
     margin: 0 auto;
-    padding: 0 $container-padding-x;
-    max-width: $container-main-max-width;
+    padding: $wrapper-padding-y $wrapper-padding-x;
+    max-width: $wrapper-max-width;
     height: 100vh;
     min-height: 100vh;
     display: flex;
@@ -69,29 +100,30 @@ button {
     padding: $header-padding-y $header-padding-x;
 }
 
-.main-heading {
-    font-family: $heading-main-font-family;
-    font-size: $heading-main-font-size;
-    line-height: $heading-main-line-height;
-    color: $heading-main-color;
+.main-title {
+    font-family: $main-title-font-family;
+    font-size: $main-title-font-size;
+    line-height: $main-title-line-height;
+    color: $main-title-color;
     margin: 0;
 }
 
-.main {
-    padding: $main-padding-y $main-padding-x;
+.main-content {
+    padding: $main-content-padding-y $main-content-padding-x;
     flex-grow: 1;
 }
 
 .chip8 {
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: $chip8-gap;
 
     &__screen-container {
-        border: $chip8-screen-container-border;
         aspect-ratio: $chip8-screen-container-aspect-ratio;
         width: 100%;
+        margin-bottom: $chip8-gap;
+        border: $border;
     }
 
     &__screen {
@@ -100,24 +132,34 @@ button {
     }
 
     &__container {
+        grid-column-start: 1;
+        grid-column-end: 13;
+        align-self: start;
+
         display: flex;
         flex-direction: column;
-        gap: $chip8-container-gap;
+
+        @media (min-width: $breakpoint-lg) {
+            grid-column-start: 1;
+            grid-column-end: 10;
+            align-self: center;
+        }
     }
 
     &__controls {
         display: flex;
-        gap: .5rem;
+        * {
+            margin-right: $chip8-gap-small;
+        }
     }
 
     &__control {
         font-family: $custom-font;
         font-size: .75rem;
         line-height: 1;
-        padding: .75rem .5rem;
-        border: $primary-color 1px solid;
-        border-radius: .25rem;
-        cursor: pointer;
+        padding: $chip8-control-padding-y $chip8-control-padding-y;
+        border: $border;
+        border-radius: $radius;
 
         &--primary {
             background-color: $surface;
@@ -125,30 +167,63 @@ button {
     }
 
     &__info {
+        grid-column-start: 1;
+        grid-column-end: 13;
+        align-self: end;
+
         p {
-            max-width: 30rem;
+            max-width: $chip8-info-max-width;
             margin: 0 auto;
+        }
+
+        @media (min-width: $breakpoint-md) {
+            grid-column-start: 1;
+            grid-column-end: 7;
+            align-self: center;
+        }
+
+        @media (min-width: $breakpoint-lg) {
+            grid-column-start: 1;
+            grid-column-end: 13;
+            align-self: center;
+            order: 1;
         }
     }
 
     &__keyboard {
+        grid-column-start: 1;
+        grid-column-end: 13;
+        align-self: end;
+
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: repeat(4, 1fr);
-        gap: .5rem;
+        gap: $chip8-gap-small;
         margin: 0 auto;
+
+        @media (min-width: $breakpoint-md) {
+            grid-column-start: 7;
+            grid-column-end: 13;
+            align-self: center;
+        }
+
+        @media (min-width: $breakpoint-lg) {
+            grid-column-start: 10;
+            grid-column-end: 13;
+            align-self: center;
+        }
     }
 
     &__key {
         font-family: $custom-font;
         background-color: $surface;
-        border: $primary-color 1px solid;
-        border-radius: .25rem;
+        border: $border;
+        border-radius: $radius;
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 2.5rem;
-        height: 2.5rem;
+        width: $chip8-key-width;
+        height: $chip8-key-height;
     }
 }
 

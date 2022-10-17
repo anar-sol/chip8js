@@ -11,56 +11,83 @@
 </head>
 
 <body>
-    <div class="container">
+    
+    <div class="wrapper">
+
         <header class="header">
-            <h1 class="main-heading">CHIP-8 Emulator</h1>
+
+            <h1 class="main-title">CHIP-8 Emulator</h1>
+
         </header>
-        <main class="main">
+
+        <main class="main-content">
+
             <article class="chip8">
-                <div class="chip8__container">
+
+                <div class="chip8__container chip8__container--top">
+
                     <div class="chip8__screen-container">
+
                         <canvas class="chip8__screen"></canvas>
+
                     </div>
+
                     <div class="chip8__controls">
+
                         <select class="chip8__control" name="rom" id="rom">
                             <option value="">Select ROM...</option>
                         </select>
+
                         <button class="chip8__control chip8__control--primary" id="startBtn">Start</button>
+
                     </div>
+
                 </div>
 
-                <div class="chip8__container">
-                    <div class="chip8__info">
-                        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Facilis nobis temporibus vero delectus repellendus debitis porro quia odit illo laudantium tempore cupiditate corrupti molestiae, natus reprehenderit. Placeat nobis sequi vitae.</p>
-                    </div>
-                    <div class="chip8__keyboard">
-                        <button class="chip8__key" id="key1">1</button>
-                        <button class="chip8__key" id="key2">2</button>
-                        <button class="chip8__key" id="key3">3</button>
-                        <button class="chip8__key" id="keyC">C</button>
+                <div class="chip8__info">
 
-                        <button class="chip8__key" id="key4">4</button>
-                        <button class="chip8__key" id="key5">5</button>
-                        <button class="chip8__key" id="key6">6</button>
-                        <button class="chip8__key" id="keyD">D</button>
+                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Facilis nobis temporibus vero
+                        delectus repellendus debitis porro quia odit illo laudantium tempore cupiditate corrupti
+                        molestiae, natus reprehenderit. Placeat nobis sequi vitae.</p>
 
-                        <button class="chip8__key" id="key7">7</button>
-                        <button class="chip8__key" id="key8">8</button>
-                        <button class="chip8__key" id="key9">9</button>
-                        <button class="chip8__key" id="keyE">E</button>
-
-                        <button class="chip8__key" id="keyA">A</button>
-                        <button class="chip8__key" id="key0">0</button>
-                        <button class="chip8__key" id="keyB">B</button>
-                        <button class="chip8__key" id="keyF">F</button>
-                    </div>
                 </div>
+
+                <div class="chip8__keyboard">
+
+                    <button class="chip8__key" id="key1">1</button>
+                    <button class="chip8__key" id="key2">2</button>
+                    <button class="chip8__key" id="key3">3</button>
+                    <button class="chip8__key" id="keyC">C</button>
+
+                    <button class="chip8__key" id="key4">4</button>
+                    <button class="chip8__key" id="key5">5</button>
+                    <button class="chip8__key" id="key6">6</button>
+                    <button class="chip8__key" id="keyD">D</button>
+
+                    <button class="chip8__key" id="key7">7</button>
+                    <button class="chip8__key" id="key8">8</button>
+                    <button class="chip8__key" id="key9">9</button>
+                    <button class="chip8__key" id="keyE">E</button>
+
+                    <button class="chip8__key" id="keyA">A</button>
+                    <button class="chip8__key" id="key0">0</button>
+                    <button class="chip8__key" id="keyB">B</button>
+                    <button class="chip8__key" id="keyF">F</button>
+
+                </div>
+
             </article>
+
         </main>
+
         <footer class="footer">
+
             <p class="footer__content"><a href="#">Links</a> and other info</p>
+
         </footer>
+
     </div>
+
 </body>
 
 </html>
