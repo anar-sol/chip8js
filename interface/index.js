@@ -2,6 +2,12 @@ import Chip8 from "../src/chip8.js";
 import Screen from './screen.js';
 import Keyboard from './keyboard.js';
 
+const roms = new Map([
+    ['IBM Logo', 'IBM Logo.ch8'],
+    ['Breakout', 'Breakout (Brix hack) [David Winter, 1997].ch8'],
+]);
+const romDirectory = 'roms/';
+
 (() => {
     const canvas = document.querySelector('.chip8__screen');
     canvas.width = canvas.clientWidth;
@@ -10,6 +16,19 @@ import Keyboard from './keyboard.js';
 
     const loadButton = document.querySelector('.chip8__button--load');
     const startButton = document.querySelector('.chip8__button--start');
+    const romSelect = document.querySelector('.chip8__select--rom');
+
+    (() => {
+        for (const [text, value] of roms) {
+            const option = new Option(text, value);
+            romSelect.add(option);
+        }
+    })();
+    romSelect.addEventListener('change', (e) => {
+        console.log(romSelect.selectedIndex);
+        console.log(romSelect.value);
+        console.log(new URL(romDirectory + romSelect.value, document.documentURI).href);
+    });
 
     const chip8 = Chip8.create();
     const screen = Screen.create(canvas);

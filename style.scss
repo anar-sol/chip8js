@@ -164,6 +164,10 @@ select {
         &--primary {
             background-color: $surface;
         }
+
+        option {
+            background-color: $surface;
+        }
     }
 
     &__info {
