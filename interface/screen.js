@@ -20,7 +20,6 @@ export default class Screen {
         this.canvasWidth = canvas.width;
         this.canvasHeight = canvas.height;
         this.context = canvas.getContext('2d');
-        this.context.fillStyle = 'white';
 
         this.width = width;
         this.height = height;
@@ -62,6 +61,4 @@ export default class Screen {
             }
         }
     }
-
-    update() { }
 }

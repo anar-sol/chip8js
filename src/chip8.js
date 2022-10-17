@@ -229,7 +229,6 @@ export default class Chip8 {
                 switch (this.getAddress()) {
                     case 0x0E0: {
                         this.screen.clear();
-                        this.screen.update();
                         break;
                     }
                     case 0x0EE: {
@@ -354,7 +353,6 @@ export default class Chip8 {
                 for (let i = 0; i < n; i++) {
                     this.drawByte(x, y + i, sprite[i]);
                 }
-                this.screen.update();
                 break;
             }
             case 0xE: {

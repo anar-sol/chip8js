@@ -4,8 +4,12 @@ import Keyboard from './keyboard.js';
 
 (() => {
     const canvas = document.querySelector('.chip8__screen');
-    const loadButton = document.getElementById('loadBtn');
-    const startButton = document.getElementById('startBtn');
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    canvas.getContext('2d').fillStyle = '#ffffff';
+
+    const loadButton = document.querySelector('.chip8__button--load');
+    const startButton = document.querySelector('.chip8__button--start');
 
     const chip8 = Chip8.create();
     const screen = Screen.create(canvas);

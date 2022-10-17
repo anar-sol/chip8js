@@ -100,11 +100,9 @@ test('execute throws Chip8Exception when fetching unknown instruction 0xF', () =
 test('instruction 00E0 CLS', () => {
     const prog = Uint8Array.from([0x00, 0xE0]);
     const clear = jest.fn();
-    const update = jest.fn();
     const chip8 = Chip8.create();
     chip8.setScreen({
         clear: clear,
-        update: update,
     });
     chip8.loadProgram(prog);
     const previousPC = chip8.programCounter;
@@ -112,7 +110,6 @@ test('instruction 00E0 CLS', () => {
 
     expect(chip8.programCounter).toBe(previousPC + 2);
     expect(clear).toHaveBeenCalledTimes(1);
-    expect(update).toHaveBeenCalledTimes(1);
 });
 
 test('instruction 00EE RET', () => {
@@ -514,13 +511,11 @@ test('instruction Dxyn', () => {
     const chip8 = Chip8.create();
     const setPixel = jest.fn();
     const getPixel = jest.fn(() => 0);
-    const update = jest.fn();
     chip8.setScreen({
         width: 64,
         height: 32,
         setPixel: setPixel,
         getPixel: getPixel,
-        update: update
     });
     chip8.loadProgram(prog);
     /**
@@ -555,8 +550,6 @@ test('instruction Dxyn', () => {
     expect(setPixel).toHaveBeenCalledWith(33, 13, 1);
     expect(setPixel).toHaveBeenCalledWith(34, 13, 1);
     expect(setPixel).toHaveBeenCalledWith(35, 13, 1);
-
-    expect(update).toHaveBeenCalledTimes(1);
 });
 
 test('instruction Dxyn x and y must be modulo of the width and height', () => {
@@ -574,13 +567,11 @@ test('instruction Dxyn x and y must be modulo of the width and height', () => {
     const chip8 = Chip8.create();
     const setPixel = jest.fn();
     const getPixel = jest.fn(() => 0);
-    const update = jest.fn();
     chip8.setScreen({
         width: 64,
         height: 32,
         setPixel: setPixel,
         getPixel: getPixel,
-        update: update
     });
     chip8.loadProgram(rom);
     /**
@@ -606,8 +597,6 @@ test('instruction Dxyn x and y must be modulo of the width and height', () => {
     expect(setPixel).toHaveBeenCalledWith(5, 2, 0);
     expect(setPixel).toHaveBeenCalledWith(6, 2, 0);
     expect(setPixel).toHaveBeenCalledWith(7, 2, 0);
-
-    expect(update).toHaveBeenCalledTimes(1);
 });
 
 test('instruction Dxyn with already set pixels', () => {
@@ -628,14 +617,12 @@ test('instruction Dxyn with already set pixels', () => {
         if ((x === 2 || x === 6) && (y === 1)) return 1;
         return 0;
     });
-    const update = jest.fn();
     const chip8 = Chip8.create();
     chip8.setScreen({
         width: 64,
         height: 32,
         setPixel: setPixel,
         getPixel: getPixel,
-        update: update
     });
     chip8.loadProgram(prog);
     /**
@@ -662,8 +649,6 @@ test('instruction Dxyn with already set pixels', () => {
     expect(setPixel).toHaveBeenCalledWith(6, 1, 0);
     expect(setPixel).toHaveBeenCalledWith(7, 1, 1);
     expect(setPixel).toHaveBeenCalledWith(8, 1, 1);
-
-    expect(update).toHaveBeenCalledTimes(1);
 });
 
 test('instruction Ex9E - SKP Vx: Skip next instruction if key with the value of Vx is pressed', () => {
