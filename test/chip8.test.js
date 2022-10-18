@@ -736,13 +736,13 @@ test('instruction Fx0A - LD Vx, K: Wait for a key press, store the value of the 
     chip8.loadProgram(prog);
     const previousPC = chip8.programCounter;
     chip8.execute();
-    expect(chip8.isRunning).toBe(false);
+    expect(chip8.waitingKey).toBe(true);
 
     const key = 0xA;
     chip8.pressKey(key);
 
     expect(chip8.programCounter).toBe(previousPC + 2);
-    expect(chip8.isRunning).toBe(true);
+    expect(chip8.waitingKey).toBe(false);
     expect(chip8.generalRegisters[0x8]).toBe(key);
 });
 

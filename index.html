@@ -30,6 +30,18 @@
 
                         <canvas class="chip8__screen"></canvas>
 
+                        <div class="chip8__help chip8__help--controls">
+                            <p>Select a ROM file with "Select ROM..." then start it with "Start</p>
+                        </div>
+
+                        <div class="chip8__help chip8__help--loading">
+                            <p>Loading...</p>
+                        </div>
+
+                        <div class="chip8__help chip8__help--error">
+                            <p>An error occurred while loading ROM</p>
+                        </div>
+
                     </div>
 
                     <div class="chip8__controls">
@@ -38,8 +50,9 @@
                             <option value="">Select ROM...</option>
                         </select>
 
-                        <button class="chip8__control chip8__control--primary chip8__button--load">Load</button>
                         <button class="chip8__control chip8__control--primary chip8__button--start">Start</button>
+                        
+                        <button class="chip8__control chip8__control--secondary chip8__button--stop">Stop</button>
 
                     </div>
 

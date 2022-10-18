@@ -161,7 +161,6 @@ export default class Chip8 {
         this.programCounter = 0;
         this.stackPointer = 0;
         this.instruction = 0;
-        this.isRunning = true;
         this.resolveKey = null;
 
         let shift = 0;
@@ -172,6 +171,8 @@ export default class Chip8 {
             }
             shift += sprite.length;
         }
+
+        this.isRunning = false;
     }
 
     static create() {
@@ -196,7 +197,6 @@ export default class Chip8 {
         this.keyboard[k] = true;
         if (this.waitingKey) {
             this.generalRegisters[this.getRegisterX()] = k;
-            this.isRunning = true;
             this.waitingKey = false;
         }
     }
@@ -206,9 +206,12 @@ export default class Chip8 {
     }
 
     async run(freq) {
+        this.isRunning = true;
+        this.screen.clear();
+
         const n = Math.floor(freq * 0.017);
         let last = Date.now();
-        while (true) {
+        while (this.isRunning) {
             if (this.delayTimer > 0) this.delayTimer--;
             if (this.soundTimer > 0) this.soundTimer--;
             for (let i = 0; i < n; i++) {
@@ -220,8 +223,13 @@ export default class Chip8 {
         }
     }
 
+    stop() {
+        this.isRunning = false;
+        this.screen.clear();
+    }
+
     execute() {
-        if (!this.isRunning) return;
+        if (this.waitingKey) return;
         this.fetch();
         const opcode = this.getOpCode();
         switch (opcode) {
@@ -380,7 +388,6 @@ export default class Chip8 {
                         break;
                     }
                     case 0x0A: {
-                        this.isRunning = false;
                         this.waitingKey = true;
                         break;
                     }

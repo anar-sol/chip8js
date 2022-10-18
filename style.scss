@@ -124,11 +124,37 @@ select {
         width: 100%;
         margin-bottom: $chip8-gap;
         border: $border;
+        position: relative;
     }
 
     &__screen {
         width: 100%;
         height: 100%;
+        background-color: black;
+    }
+
+    &__help {
+        font-family: $custom-font;
+        font-size: .75rem;
+        padding: $chip8-gap;
+        display: none;
+        z-index: 10;
+
+        &--active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        p {
+            margin: 0;
+        }
     }
 
     &__container {
