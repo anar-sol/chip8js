@@ -4,8 +4,10 @@ import Keyboard from './keyboard.js';
 
 (() => {
     const roms = new Map([
-        ['IBM Logo', 'IBM Logo.ch8'],
         ['Breakout', 'Breakout (Brix hack) [David Winter, 1997].ch8'],
+        ['IBM Logo', 'IBM Logo.ch8'],
+        ['Pong', 'Pong (1 player).ch8'],
+        ['Tetris', 'Tetris [Fran Dachille, 1991].ch8'],
     ]);
     const romDirectory = 'roms/';
     let rom = null;
