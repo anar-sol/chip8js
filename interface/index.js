@@ -24,6 +24,8 @@ import Keyboard from './keyboard.js';
     const startButton = document.querySelector('.chip8__button--start');
     const stopButton = document.querySelector('.chip8__button--stop');
 
+    const keyboardButtons = document.querySelectorAll('.chip8__key');
+
     (function initROMSelect() {
         for (const [text, value] of roms) {
             const option = new Option(text, value);
@@ -38,6 +40,13 @@ import Keyboard from './keyboard.js';
 
     document.addEventListener('keydown', e => { keyboard.handle(e); });
     document.addEventListener('keyup', e => { keyboard.handle(e); });
+
+    for (const button of keyboardButtons) {
+        button.addEventListener('mousedown', e => { keyboard.handle(e); });
+        button.addEventListener('pointerdown', e => { keyboard.handle(e); });
+        button.addEventListener('mouseup', e => { keyboard.handle(e); });
+        button.addEventListener('pointerup', e => { keyboard.handle(e); });
+    }
 
     romSelect.addEventListener('change', (e) => {
         if (romSelect.value !== '') {
