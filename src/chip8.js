@@ -1,4 +1,5 @@
-import fontSprites from "./font-sprites";
+import { RAM } from "./ram.js";
+import fontSprites from "./font-sprites.js";
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -17,26 +18,10 @@ function getBCD(n) {
 export class Chip8Exception extends Error {
 }
 
-export class RAM {
-    #array;
-
-    constructor(size) {
-        this.#array = new Uint8Array(size);
-    }
-
-    get length() {
-        return this.#array.length;
-    }
-
-    getRange(begin, end) {
-        return this.#array.subarray(begin, end);
-    }
-}
-
 export default class Chip8 {
 
     constructor() {
-        this.ram = new Uint8Array(4096);
+        this.ram = RAM.newRAM(4096);
         this.generalRegisters = new Uint8Array(16);
         this.stack = new Uint16Array(16);
         this.keyboard = [false, false, false, false, false, false, false, false,
@@ -50,13 +35,9 @@ export default class Chip8 {
         this.instruction = 0;
         this.resolveKey = null;
 
-        let shift = 0;
         for (let i = 0; i < fontSprites.length; i++) {
             const sprite = fontSprites[i];
-            for (let j = 0; j < sprite.length; j++) {
-                this.ram[shift + j] = sprite[j];
-            }
-            shift += sprite.length;
+            this.ram.writeRange(i * sprite.length, sprite);
         }
 
         this.isRunning = false;
@@ -71,10 +52,7 @@ export default class Chip8 {
     }
 
     loadProgram(prog) {
-        let i = this.programStart;
-        for (const byte of prog) {
-            this.ram[i++] = byte;
-        }
+        this.ram.writeRange(this.programStart, prog);
 
         this.programCounter = this.programStart;
         this.stackPointer = 0;
@@ -243,7 +221,7 @@ export default class Chip8 {
                 const x = this.generalRegisters[this.getRegisterX()] % this.screen.width;
                 const y = this.generalRegisters[this.getRegisterY()] % this.screen.height;
 
-                const sprite = this.ram.subarray(this.addressRegister, this.addressRegister + n);
+                const sprite = this.ram.readRange(this.addressRegister, n);
                 this.generalRegisters[0xF] = 0;
                 for (let i = 0; i < n; i++) {
                     this.drawByte(x, y + i, sprite[i]);
@@ -298,19 +276,19 @@ export default class Chip8 {
                         const bcd = getBCD(this.generalRegisters[this.getRegisterX()]);
                         for (let i = 0; i < 3; i++) {
                             const value = bcd.pop();
-                            this.ram[this.addressRegister + i] = value ? value : 0;
+                            this.ram.writeByte(this.addressRegister + i, value ? value : 0);
                         }
                         break;
                     }
                     case 0x55: {
                         for (let r = 0; r <= this.getRegisterX(); r++) {
-                            this.ram[this.addressRegister + r] = this.generalRegisters[r];
+                            this.ram.writeByte(this.addressRegister + r, this.generalRegisters[r]);
                         }
                         break;
                     }
                     case 0x65: {
                         for (let r = 0; r <= this.getRegisterX(); r++) {
-                            this.generalRegisters[r] = this.ram[this.addressRegister + r];
+                            this.generalRegisters[r] = this.ram.readByte(this.addressRegister + r);
                         }
                         break;
                     }
@@ -324,9 +302,7 @@ export default class Chip8 {
     }
 
     fetch() {
-        const byte1 = this.ram[this.programCounter];
-        const byte0 = this.ram[this.programCounter + 1];
-        this.instruction = (byte1 << 8) | byte0;
+        this.instruction = this.ram.readDoubleByte(this.programCounter);
         this.moveToNextInstruction();
     }
 

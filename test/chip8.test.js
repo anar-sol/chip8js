@@ -10,10 +10,6 @@ beforeAll(async () => {
     IBMLogoProgram = Uint8Array.from(await fs.readFile('test/roms/IBM Logo.ch8'));
 });
 
-test('RAM is 4K (4096) bytes length', () => {
-    expect(Chip8.create().ram).toHaveLength(4096);
-});
-
 test('programs start at location programStart = 0x200 (512)', () => {
     expect(Chip8.create().programStart).toBe(512);
 });
@@ -49,7 +45,7 @@ test('has a stack of 16 16-bit values', () => {
 test('loadProgram copies program in ram', () => {
     const chip8 = Chip8.create();
     chip8.loadProgram(IBMLogoProgram);
-    const ram = chip8.ram.subarray(chip8.programStart, chip8.programStart + IBMLogoProgram.length);
+    const ram = chip8.ram.readRange(chip8.programStart, IBMLogoProgram.length);
     expect(ram).toEqual(IBMLogoProgram);
 });
 
@@ -798,7 +794,7 @@ test('instruction Fx29 - LD F, Vx: Set I = location of sprite for digit Vx', () 
         0b10010000,
         0b11110000,
     ]);
-    const ram = chip8.ram.subarray(chip8.addressRegister, chip8.addressRegister + sprite.length);
+    const ram = chip8.ram.readRange(chip8.addressRegister, sprite.length);
 
     expect(chip8.programCounter).toBe(previousPC + 2);
     expect(ram).toEqual(sprite);
@@ -819,7 +815,7 @@ test('instruction Fx29 - LD F, Vx: Set I = location of sprite for digit Vx', () 
         0b10000000,
         0b10000000,
     ]);
-    const ram = chip8.ram.subarray(chip8.addressRegister, chip8.addressRegister + sprite.length);
+    const ram = chip8.ram.readRange(chip8.addressRegister, sprite.length);
 
     expect(chip8.programCounter).toBe(previousPC + 2);
     expect(ram).toEqual(sprite);
@@ -835,7 +831,7 @@ test('instruction Fx33 - LD B, Vx: Store BCD representation of Vx in memory loca
     chip8.execute();
 
     const bcd = Uint8Array.from([1, 2, 3]);
-    const ram = chip8.ram.subarray(0x204, 0x204 + bcd.length);
+    const ram = chip8.ram.readRange(0x204, bcd.length);
 
     expect(chip8.programCounter).toBe(previousPC + 2);
     expect(ram).toEqual(bcd);
@@ -865,7 +861,7 @@ test('instruction Fx55 - LD [I], Vx, Vx: Store registers V0 through Vx in memory
     const previousPC = chip8.programCounter;
     chip8.execute();
 
-    const ram = chip8.ram.subarray(0x204, 0x204 + 16);
+    const ram = chip8.ram.readRange(0x204, 16);
     expect(ram).toEqual(chip8.generalRegisters);
     expect(chip8.programCounter).toBe(previousPC + 2);
 });
@@ -884,7 +880,4 @@ test('instruction Fx65 - LD Vx, [I]: Read registers V0 through Vx from memory st
     expect(chip8.programCounter).toBe(previousPC + 2);
 });
 
-test('run', () => {
-
-});
-
+test.todo('run');
