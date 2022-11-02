@@ -6,32 +6,134 @@ export class Chip8Exception extends Error {
 }
 
 export default class Chip8 {
+    #RAM_SIZE = 4096;
+    #NB_GENERAL_REGISTERS = 16;
+    #STACK_SIZE = 16;
+    #PROGRAM_START_ADDRESS = 512;
+
+    #ram;
+    #generalRegisters;
+    #stack;
+    #addressRegister;
+    #soundTimer;
+    #delayTimer;
+    #programCounter;
+    #stackPointer;
+    #instruction;
+    #isRunning;
+    #keyboard;
 
     constructor() {
-        this.ram = RAM.newRAM(4096);
-        this.generalRegisters = new Uint8Array(16);
-        this.stack = new Uint16Array(16);
-        this.keyboard = [false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false];
-        this.programStart = 512;
-        this.addressRegister = 0;
-        this.soundTimer = 0;
-        this.delayTimer = 0;
-        this.programCounter = 0;
-        this.stackPointer = 0;
-        this.instruction = 0;
-        this.resolveKey = null;
+        this.initialize();
+    }
 
+    static newChip8() {
+        return new Chip8();
+    }
+
+    get ram() {
+        return this.#ram;
+    }
+
+    get generalRegisters() {
+        return this.#generalRegisters;
+    }
+
+    get stack() {
+        return this.#stack;
+    }
+
+    get programStartAddress() {
+        return this.#PROGRAM_START_ADDRESS;
+    }
+
+    get addressRegister() {
+        return this.#addressRegister;
+    }
+
+    set addressRegister(value) {
+        this.#addressRegister = value;
+    }
+
+    get soundTimer() {
+        return this.#soundTimer;
+    }
+
+    set soundTimer(value) {
+        this.#soundTimer = value;
+    }
+
+    get delayTimer() {
+        return this.#delayTimer;
+    }
+
+    set delayTimer(value) {
+        this.#delayTimer = value;
+    }
+
+    get programCounter() {
+        return this.#programCounter;
+    }
+
+    set programCounter(value) {
+        this.#programCounter = value;
+    }
+
+    get stackPointer() {
+        return this.#stackPointer;
+    }
+
+    set stackPointer(value) {
+        this.#stackPointer = value;
+    }
+
+    get instruction() {
+        return this.#instruction;
+    }
+
+    set instruction(value) {
+        this.#instruction = value;
+    }
+
+    get isRunning() {
+        return this.#isRunning;
+    }
+
+    set isRunning(value) {
+        this.#isRunning = value;
+    }
+
+    get keyboard() {
+        return this.#keyboard;
+    }
+
+    initialize() {
+        this.#ram = RAM.newRAM(this.#RAM_SIZE);
+        this.#generalRegisters = new Uint8Array(this.#NB_GENERAL_REGISTERS);
+        this.#stack = new Uint16Array(this.#STACK_SIZE);
+
+        this.#addressRegister = 0;
+        this.#soundTimer = 0;
+        this.#delayTimer = 0;
+        this.#programCounter = 0;
+        this.#stackPointer = 0;
+        this.#instruction = 0;
+        this.#isRunning = false;
+
+        this.#loadSprites();
+        this.#initKeyboard();
+    }
+
+    #loadSprites() {
         for (let i = 0; i < fontSprites.length; i++) {
             const sprite = fontSprites[i];
             this.ram.writeRange(i * sprite.length, sprite);
         }
-
-        this.isRunning = false;
     }
 
-    static create() {
-        return new Chip8();
+    #initKeyboard() {
+        this.#keyboard = [false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false];
     }
 
     setScreen(screen) {
@@ -39,9 +141,9 @@ export default class Chip8 {
     }
 
     loadProgram(prog) {
-        this.ram.writeRange(this.programStart, prog);
+        this.ram.writeRange(this.programStartAddress, prog);
 
-        this.programCounter = this.programStart;
+        this.programCounter = this.programStartAddress;
         this.stackPointer = 0;
     }
 

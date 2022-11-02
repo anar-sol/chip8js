@@ -35,7 +35,7 @@ import Keyboard from './keyboard.js';
         }
     })();
 
-    const chip8 = Chip8.create();
+    const chip8 = Chip8.newChip8();
     const screen = Screen.create(canvas);
     chip8.setScreen(screen);
     const keyboard = Keyboard.create(chip8);
