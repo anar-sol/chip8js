@@ -12,4 +12,9 @@ function getBCD(n) {
     return bcd;
 }
 
-export { timeout, getBCD };
+function getNibble(instruction, n) {
+    const mask = 0xF << (4 * n);
+    return (instruction & mask) >>> (4 * n);
+}
+
+export { timeout, getBCD, getNibble };
