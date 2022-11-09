@@ -1,23 +1,23 @@
 import { getNibble } from "../utils.js";
-import InstructionCLS from "./instruction-cls.js";
-import InstructionRET from "./instruction-ret.js";
-import InstructionJP from "./instruction-jp.js";
-import InstructionCALL from "./instruction-call.js";
-import InstructionSE from "./instruction-se.js";
-import InstructionSNE from "./instruction-sen.js";
-import InstructionSERegisters from "./instruction-se-registers.js";
-import InstructionLD from "./instruction-ld.js";
-import InstructionADD from "./instruction-add-byte.js";
-import InstructionLDRegisters from "./instruction-ld-registers.js";
-import InstructionOR from "./instruction-or.js";
-import InstructionAND from "./instruction-and.js";
-import InstructionXOR from "./instruction-xor.js";
-import InstructionADDRegisters from "./instruction-add-registers.js";
-import InstructionSUBRegisters from "./instruction-sub-registers.js";
-import InstructionSHR from "./instruction-shr.js";
-import InstructionSUBN from "./instruction-subn.js";
-import InstructionSHL from "./instruction-shl.js";
-import InstructionSNERegisters from "./instruction-sne-registers.js";
+import CLS from "./cls.js";
+import RET from "./ret.js";
+import JP from "./jp.js";
+import CALL from "./call.js";
+import SEByte from "./se-byte.js";
+import SNEByte from "./sen-byte.js";
+import SERegisters from "./se-registers.js";
+import LDByte from "./ld-byte.js";
+import ADDByte from "./add-byte.js";
+import LDRegisters from "./ld-registers.js";
+import ORRegisters from "./or-registers.js";
+import ANDRegisters from "./and-registers.js";
+import XORRegisters from "./xor-registers.js";
+import ADDRegisters from "./add-registers.js";
+import SUBRegisters from "./sub-registers.js";
+import SHR from "./shr.js";
+import SUBNRegisters from "./subn-registers.js";
+import SHL from "./shl.js";
+import SNERegisters from "./sne-registers.js";
 
 export default class InstructionDecoder {
 
@@ -26,49 +26,49 @@ export default class InstructionDecoder {
             case 0x0:
                 switch (getNibble(instruction, 0)) {
                     case 0x0:
-                        return new InstructionCLS();
+                        return new CLS();
                     case 0xE:
-                        return new InstructionRET();
+                        return new RET();
                 }
                 break;
             case 0x1:
-                return new InstructionJP(instruction);
+                return new JP(instruction);
             case 0x2:
-                return new InstructionCALL(instruction);
+                return new CALL(instruction);
             case 0x3:
-                return new InstructionSE(instruction);
+                return new SEByte(instruction);
             case 0x4:
-                return new InstructionSNE(instruction);
+                return new SNEByte(instruction);
             case 0x5:
-                return new InstructionSERegisters(instruction);
+                return new SERegisters(instruction);
             case 0x6:
-                return new InstructionLD(instruction);
+                return new LDByte(instruction);
             case 0x7:
-                return new InstructionADD(instruction);
+                return new ADDByte(instruction);
             case 0x8:
                 switch (getNibble(instruction, 0)) {
                     case 0x0:
-                        return new InstructionLDRegisters(instruction);
+                        return new LDRegisters(instruction);
                     case 0x1:
-                        return new InstructionOR(instruction);
+                        return new ORRegisters(instruction);
                     case 0x2:
-                        return new InstructionAND(instruction);
+                        return new ANDRegisters(instruction);
                     case 0x3:
-                        return new InstructionXOR(instruction);
+                        return new XORRegisters(instruction);
                     case 0x4:
-                        return new InstructionADDRegisters(instruction);
+                        return new ADDRegisters(instruction);
                     case 0x5:
-                        return new InstructionSUBRegisters(instruction);
+                        return new SUBRegisters(instruction);
                     case 0x6:
-                        return new InstructionSHR(instruction);
+                        return new SHR(instruction);
                     case 0x7:
-                        return new InstructionSUBN(instruction);
+                        return new SUBNRegisters(instruction);
                     case 0xE:
-                        return new InstructionSHL(instruction);
+                        return new SHL(instruction);
                 }
                 break;
             case 0x9:
-                return new InstructionSNERegisters(instruction);
+                return new SNERegisters(instruction);
         }
     }
 

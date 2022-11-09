@@ -1,9 +1,8 @@
 import { Instruction } from "./instruction.js";
 
-export default class InstructionSUBN extends Instruction {
+export default class LDByte extends Instruction {
 
     constructor(instruction) {
         super(instruction);
     }
-
 }

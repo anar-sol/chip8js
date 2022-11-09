@@ -1,9 +1,9 @@
 import { Instruction } from "./instruction.js";
 
-export default class InstructionADD extends Instruction {
+export default class CALL extends Instruction {
 
     constructor(instruction) {
         super(instruction);
     }
-    
+
 }
