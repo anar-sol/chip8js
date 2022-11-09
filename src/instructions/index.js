@@ -18,6 +18,7 @@ import SHR from "./shr.js";
 import SUBNRegisters from "./subn-registers.js";
 import SHL from "./shl.js";
 import SNERegisters from "./sne-registers.js";
+import LDAddress from "./ld-address.js";
 
 export default class InstructionDecoder {
 
@@ -69,6 +70,8 @@ export default class InstructionDecoder {
                 break;
             case 0x9:
                 return new SNERegisters(instruction);
+            case 0xA:
+                return new LDAddress(instruction);
         }
     }
 

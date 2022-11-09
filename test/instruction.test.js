@@ -253,4 +253,16 @@ describe("InstructionDecoder", () => {
             })
         );
     });
+
+    test("decode Annn - LD I, addr instruction", () => {
+        const LD_ADDRESS = 0xA111;
+        const ADDRESS = 0x111;
+
+        expect(InstructionDecoder.decode(LD_ADDRESS)).toEqual(
+            expect.objectContaining({
+                execute: expect.any(Function),
+                address: ADDRESS
+            })
+        );
+    });
 });
