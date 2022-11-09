@@ -8,7 +8,7 @@ class Instruction {
         this.#instruction = instruction;
     }
 
-    execute() { }
+    execute(chip8) { }
 
     get registerX() {
         return getNibble(this.#instruction, 2);

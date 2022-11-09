@@ -1,8 +1,6 @@
 import InstructionDecoder from "../src/instructions/index.js";
 
 describe("InstructionDecoder", () => {
-
-    console.log(InstructionDecoder);
     
     test("decode 00E0 - CLS instruction", () => {
         const CLS_INSTRUCTION = 0x00E0;
