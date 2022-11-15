@@ -8,6 +8,15 @@ import SNEByte from "../src/instructions/sen-byte.js";
 import SERegisters from "../src/instructions/se-registers.js";
 import LDByte from "../src/instructions/ld-byte.js";
 import ADDByte from "../src/instructions/add-byte.js";
+import LDRegisters from "../src/instructions/ld-registers.js";
+import ORRegisters from "../src/instructions/or-registers.js";
+import ANDRegisters from "../src/instructions/and-registers.js";
+import XORRegisters from "../src/instructions/xor-registers.js";
+import ADDRegisters from "../src/instructions/add-registers.js";
+import SUBRegisters from "../src/instructions/sub-registers.js";
+import SHR from "../src/instructions/shr.js";
+import SUBNRegisters from "../src/instructions/subn-registers.js";
+import SHL from "../src/instructions/shl.js";
 
 describe("Instructions", () => {
 
@@ -304,5 +313,324 @@ describe("Instructions", () => {
 
         expect(chip8.registers.write).toHaveBeenCalledTimes(1);
         expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V7, REGISTER_X_VALUE + BYTE_VALUE);
+    });
+
+    test("execute 8xy0 - LD Vx, Vy, registers instructions", () => {
+        const LD_REGISTERS_INSTRUCTIONS = 0x84B0;
+        const REGISTER_Y_VALUE = 0x1F;
+        const instruction = new LDRegisters(LD_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(() => REGISTER_Y_VALUE),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.VB);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V4, REGISTER_Y_VALUE);
+    });
+
+    test("execute 8xy1 - OR Vx, Vy, registers instructions", () => {
+        const OR_REGISTERS_INSTRUCTIONS = 0x84B1;
+        const REGISTER_X_VALUE = 0b1100_1010;
+        const REGISTER_Y_VALUE = 0b0101_1100;
+        const EXPECTED_RESULT = 0b1101_1110;
+        const instruction = new ORRegisters(OR_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V4:
+                            return REGISTER_X_VALUE;
+                        case Registers.VB:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V4, EXPECTED_RESULT);
+    });
+
+    test("execute 8xy2 - AND Vx, Vy, registers instructions", () => {
+        const AND_REGISTERS_INSTRUCTIONS = 0x85A2;
+        const REGISTER_X_VALUE = 0b1100_1010;
+        const REGISTER_Y_VALUE = 0b0101_1100;
+        const EXPECTED_RESULT = 0b0100_1000;
+        const instruction = new ANDRegisters(AND_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V5:
+                            return REGISTER_X_VALUE;
+                        case Registers.VA:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V5, EXPECTED_RESULT);
+    });
+
+    test("execute 8xy3 - XOR Vx, Vy, registers instructions", () => {
+        const XOR_REGISTERS_INSTRUCTIONS = 0x85A3;
+        const REGISTER_X_VALUE = 0b1100_1010;
+        const REGISTER_Y_VALUE = 0b0101_1100;
+        const EXPECTED_RESULT = 0b1001_0110;
+        const instruction = new XORRegisters(XOR_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V5:
+                            return REGISTER_X_VALUE;
+                        case Registers.VA:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V5, EXPECTED_RESULT);
+    });
+
+    test("execute 8xy4 - ADD Vx, Vy, registers instructions", () => {
+        const ADD_REGISTERS_INSTRUCTIONS = 0x86C4;
+        const REGISTER_X_VALUE = 0x1F;
+        const REGISTER_Y_VALUE = 0x2E;
+        const EXPECTED_RESULT = REGISTER_X_VALUE + REGISTER_Y_VALUE;
+        const EXPECTED_FLAG = 0;
+        const instruction = new ADDRegisters(ADD_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V6:
+                            return REGISTER_X_VALUE;
+                        case Registers.VC:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V6, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, EXPECTED_FLAG);
+    });
+
+    test("execute 8xy4 - ADD Vx, Vy, registers instructions (overflow)", () => {
+        const ADD_REGISTERS_INSTRUCTIONS = 0x86C4;
+        const REGISTER_X_VALUE = 0x1F;
+        const REGISTER_Y_VALUE = 0xE2;
+        const EXPECTED_RESULT = REGISTER_X_VALUE + REGISTER_Y_VALUE;
+        const EXPECTED_FLAG = 1;
+        const instruction = new ADDRegisters(ADD_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V6:
+                            return REGISTER_X_VALUE;
+                        case Registers.VC:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V6, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, EXPECTED_FLAG);
+    });
+
+    test("execute 8xy5 - SUB Vx, Vy, registers instructions", () => {
+        const SUB_REGISTERS_INSTRUCTIONS = 0x86C5;
+        const REGISTER_X_VALUE = 0x2F;
+        const REGISTER_Y_VALUE = 0x1E;
+        const EXPECTED_RESULT = REGISTER_X_VALUE - REGISTER_Y_VALUE;
+        const EXPECTED_FLAG = 1;
+        const instruction = new SUBRegisters(SUB_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V6:
+                            return REGISTER_X_VALUE;
+                        case Registers.VC:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V6, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, EXPECTED_FLAG);
+    });
+
+    test("execute 8xy5 - SUB Vx, Vy, registers instructions (underflow)", () => {
+        const SUB_REGISTERS_INSTRUCTIONS = 0x86C5;
+        const REGISTER_X_VALUE = 0x2F;
+        const REGISTER_Y_VALUE = 0x3F;
+        const EXPECTED_RESULT = REGISTER_X_VALUE - REGISTER_Y_VALUE;
+        const EXPECTED_FLAG = 0;
+        const instruction = new SUBRegisters(SUB_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V6:
+                            return REGISTER_X_VALUE;
+                        case Registers.VC:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V6, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, EXPECTED_FLAG);
+    });
+
+    test("execute 8xy6 - SHR Vx, Vy, instruction", () => {
+        const SHR_INSTRUCTIONS = 0x82E6;
+        const REGISTER_Y_VALUE = 0b1010_1010;
+        const EXPECTED_RESULT = 0b0101_0101;
+        const LEAST_SIGNIFICANT_BIT = 0;
+        const instruction = new SHR(SHR_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(() => REGISTER_Y_VALUE),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V2, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, LEAST_SIGNIFICANT_BIT);
+    });
+
+    test("execute 8xy7 - SUB Vx, Vy, registers instructions", () => {
+        const SUB_REGISTERS_INSTRUCTIONS = 0x86C5;
+        const REGISTER_X_VALUE = 0x10;
+        const REGISTER_Y_VALUE = 0x1E;
+        const EXPECTED_RESULT = REGISTER_Y_VALUE - REGISTER_X_VALUE;
+        const EXPECTED_FLAG = 1;
+        const instruction = new SUBNRegisters(SUB_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V6:
+                            return REGISTER_X_VALUE;
+                        case Registers.VC:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V6, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, EXPECTED_FLAG);
+    });
+
+    test("execute 8xy7 - SUB Vx, Vy, registers instructions (underflow)", () => {
+        const SUB_REGISTERS_INSTRUCTIONS = 0x86C5;
+        const REGISTER_X_VALUE = 0x2F;
+        const REGISTER_Y_VALUE = 0x1E;
+        const EXPECTED_RESULT = REGISTER_Y_VALUE - REGISTER_X_VALUE;
+        const EXPECTED_FLAG = 0;
+        const instruction = new SUBNRegisters(SUB_REGISTERS_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V6:
+                            return REGISTER_X_VALUE;
+                        case Registers.VC:
+                            return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V6, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, EXPECTED_FLAG);
+    });
+
+    test("execute 8xyE - SHL Vx, Vy, instruction", () => {
+        const SHL_INSTRUCTIONS = 0x82EE;
+        const REGISTER_Y_VALUE = 0b1010_1010;
+        const EXPECTED_RESULT = 0b1010_10100;
+        const MOST_SIGNIFICANT_BIT = 1;
+        const instruction = new SHL(SHL_INSTRUCTIONS);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(() => REGISTER_Y_VALUE),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.VE);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(2);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V2, EXPECTED_RESULT);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, MOST_SIGNIFICANT_BIT);
     });
 });

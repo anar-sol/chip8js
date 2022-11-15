@@ -6,4 +6,8 @@ export default class LDRegisters extends Instruction {
         super(instruction);
     }
 
+    execute(chip8) {
+        chip8.registers.write(this.registerX, chip8.registers.read(this.registerY));
+    }
+
 }
