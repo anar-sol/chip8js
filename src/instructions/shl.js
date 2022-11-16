@@ -11,7 +11,5 @@ export default class SHL extends Instruction {
         const value = chip8.registers.read(this.registerY);
         chip8.registers.write(Registers.VF, (value & 0b1000_0000) >>> 7);
         chip8.registers.write(this.registerX, value << 1);
-        const v = value << 1;
-        console.log("************* ", v.toString(2));
     }
 }

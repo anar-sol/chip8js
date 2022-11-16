@@ -25,6 +25,10 @@ class Instruction {
     get byte() {
         return this.#instruction & 0x00FF;
     }
+
+    get nibble() {
+        return getNibble(this.#instruction, 0);
+    }
 }
 
 class InstructionException extends Error {

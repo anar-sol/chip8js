@@ -17,6 +17,11 @@ import SUBRegisters from "../src/instructions/sub-registers.js";
 import SHR from "../src/instructions/shr.js";
 import SUBNRegisters from "../src/instructions/subn-registers.js";
 import SHL from "../src/instructions/shl.js";
+import SNE from "../src/instructions/sne-registers.js";
+import LDAddress from "../src/instructions/ld-address.js";
+import JPRegister from "../src/instructions/jp-register.js";
+import RND from "../src/instructions/rnd.js";
+import DRW from "../src/instructions/drw.js";
 
 describe("Instructions", () => {
 
@@ -632,5 +637,336 @@ describe("Instructions", () => {
         expect(chip8.registers.write).toHaveBeenCalledTimes(2);
         expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V2, EXPECTED_RESULT);
         expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, MOST_SIGNIFICANT_BIT);
+    });
+
+    test("execute 9xy0 - SNE Vx, Vy, registers instruction", () => {
+        const SNE_INSTRUCTION = 0x93F0;
+        const REGISTER_X_VALUE = 0x4A;
+        const REGISTER_Y_VALUE = 0x4B;
+        const CURRENT_PC = 0x200;
+        const instruction = new SNE(SNE_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V3: return REGISTER_X_VALUE;
+                        case Registers.VF: return REGISTER_Y_VALUE;
+                        case Registers.PC: return CURRENT_PC;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.PC, CURRENT_PC + 2);
+    });
+
+    test("execute 9xy0 - SNE Vx, Vy, registers instruction (equal)", () => {
+        const SNE_INSTRUCTION = 0x93F0;
+        const REGISTER_X_VALUE = 0x4A;
+        const REGISTER_Y_VALUE = 0x4A;
+        const CURRENT_PC = 0x200;
+        const instruction = new SNE(SNE_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.V3: return REGISTER_X_VALUE;
+                        case Registers.VF: return REGISTER_Y_VALUE;
+                        case Registers.PC: return CURRENT_PC;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(0);
+    });
+
+    test("execute Annn - LD I, addr, instruction", () => {
+        const SNE_INSTRUCTION = 0xA923;
+        const EXPECTED_VALUE = 0x923;
+        const instruction = new LDAddress(SNE_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.I, EXPECTED_VALUE);
+    });
+
+    test("execute Bnnn - JP V0, addr instruction", () => {
+        const JP_REGISTER_INSTRUCTION = 0xB400;
+        const ADDRESS = 0x400;
+        const V0_VALUE = 0x1FF;
+        const EXPECTED_VALUE = ADDRESS + V0_VALUE;
+        const instruction = new JPRegister(JP_REGISTER_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(() => V0_VALUE),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.V0);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.PC, EXPECTED_VALUE);
+    });
+
+    test("execute Cxkk - RND Vx, byte instruction", () => {
+        const RND_INSTRUCTION = 0xC8FF;
+        const instruction = new RND(RND_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V8, expect.any(Number));
+
+        expect(chip8.registers.write.mock.calls[0][1]).toBeGreaterThanOrEqual(0);
+        expect(chip8.registers.write.mock.calls[0][1]).toBeLessThanOrEqual(0xFF);
+    });
+
+    test("execute Cxkk - RND Vx, byte instruction (0x0F mask)", () => {
+        const RND_INSTRUCTION = 0xC80F;
+        const instruction = new RND(RND_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V8, expect.any(Number));
+
+        expect(chip8.registers.write.mock.calls[0][1]).toBeGreaterThanOrEqual(0);
+        expect(chip8.registers.write.mock.calls[0][1]).toBeLessThanOrEqual(0xF);
+    });
+
+    test("execute Dxyn - DRW Vx, Vy, nibble instruction", () => {
+        /**
+         * Dxyn with x = 7, y = 8, n = 2
+         * Draw a 2-byte sprite at (V7, V8)
+         * the sprite bytes start at I = 0x202
+         * sprite:
+         * ----------
+         * |****    |
+         * |    ****|
+         * ----------
+         */
+        /**
+         * set V7 to 28, V8 = 12 for coordinates (28, 12)
+         * set I = 0x202 to locate sprite bytes
+         */
+        const DRW_INSTRUCTION = 0xD782;
+        const REGISTER_X_VALUE = 28;
+        const REGISTER_Y_VALUE = 12;
+        const ADDRESS = 0x202;
+        const instruction = new DRW(DRW_INSTRUCTION);
+
+        const chip8 = {
+            screen: {
+                width: 64,
+                height: 32,
+                getPixel: jest.fn(() => 0),
+                setPixel: jest.fn(),
+            },
+            ram: {
+                readRange: jest.fn(() => Uint8Array.from([0xF0, 0x0F]) ),
+            },
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.I: return ADDRESS;
+                        case Registers.V7: return REGISTER_X_VALUE;
+                        case Registers.V8: return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.I);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.V7);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.V8);
+        expect(chip8.ram.readRange).toHaveBeenCalledWith(ADDRESS, 2);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, 0);
+
+        expect(chip8.screen.setPixel).toHaveBeenCalledTimes(16);
+
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(28, 12, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(29, 12, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(30, 12, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(31, 12, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(32, 12, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(33, 12, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(34, 12, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(35, 12, 0);
+
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(28, 13, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(29, 13, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(30, 13, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(31, 13, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(32, 13, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(33, 13, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(34, 13, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(35, 13, 1);
+    });
+
+    test("execute Dxyn - DRW Vx, Vy, nibble instruction (x and y must be modulo of the width and height)", () => {
+        /**
+         * ROM
+         * Dxyn with x = 7, y = 8, n = 1
+         * Draw a 7-byte sprite at (V7, V8)
+         * the sprite bytes are located at I = programStartAddress + 2
+         * sprite:
+         * ----------
+         * |****    |
+         * ----------
+         */
+        /**
+         * set V7 to 64, V8 = 34 for coordinates (64, 34) --> (0, 2)
+         * set I = programStartAddress + 2 to locate sprite bytes
+         */
+        const DRW_INSTRUCTION = 0xD781;
+        const REGISTER_X_VALUE = 64;
+        const REGISTER_Y_VALUE = 34;
+        const ADDRESS = 0x202;
+        const instruction = new DRW(DRW_INSTRUCTION);
+
+        const chip8 = {
+            screen: {
+                width: 64,
+                height: 32,
+                getPixel: jest.fn(() => 0),
+                setPixel: jest.fn(),
+            },
+            ram: {
+                readRange: jest.fn(() => Uint8Array.from([0xF0]) ),
+            },
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.I: return ADDRESS;
+                        case Registers.V7: return REGISTER_X_VALUE;
+                        case Registers.V8: return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.I);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.V7);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.V8);
+        expect(chip8.ram.readRange).toHaveBeenCalledWith(ADDRESS, 1);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.VF, 0);
+
+        expect(chip8.screen.setPixel).toHaveBeenCalledTimes(8);
+
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(0, 2, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(1, 2, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(2, 2, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(3, 2, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(4, 2, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(5, 2, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(6, 2, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(7, 2, 0);
+    });
+
+    test("execute Dxyn - DRW Vx, Vy, nibble instruction (with already set pixels)", () => {
+        /**
+         * ROM
+         * Dxyn with x = 0, y = 5, n = 1
+         * Draw a 7-byte sprite at (V0, V5)
+         * the sprite bytes are located at I = programStartAddress + 4
+         * sprite:
+         * ----------
+         * |    ****|
+         * ----------
+         */
+        /**
+         * set V0 to 1, V5 to 1 for coordinates (1, 1)
+         * set I = programStartAddress + 4 to locate sprite bytes
+         */
+        const DRW_INSTRUCTION = 0xD051;
+        const REGISTER_X_VALUE = 1;
+        const REGISTER_Y_VALUE = 1;
+        const ADDRESS = 0x204;
+        const instruction = new DRW(DRW_INSTRUCTION);
+
+        const chip8 = {
+            screen: {
+                width: 64,
+                height: 32,
+                getPixel: jest.fn((x, y) => (x === 2 || x === 6) && (y === 1)),
+                setPixel: jest.fn(),
+            },
+            ram: {
+                readRange: jest.fn(() => Uint8Array.from([0x0F]) ),
+            },
+            registers: {
+                read: jest.fn((register) => {
+                    switch (register) {
+                        case Registers.I: return ADDRESS;
+                        case Registers.V0: return REGISTER_X_VALUE;
+                        case Registers.V5: return REGISTER_Y_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+        };
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.I);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.V0);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.V5);
+        expect(chip8.ram.readRange).toHaveBeenCalledWith(ADDRESS, 1);
+
+        expect(chip8.registers.write).toHaveBeenLastCalledWith(Registers.VF, 1);
+
+        expect(chip8.screen.setPixel).toHaveBeenCalledTimes(8);
+
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(1, 1, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(2, 1, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(3, 1, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(4, 1, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(5, 1, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(6, 1, 0);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(7, 1, 1);
+        expect(chip8.screen.setPixel).toHaveBeenCalledWith(8, 1, 1);
     });
 });
