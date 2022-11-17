@@ -22,6 +22,12 @@ import LDAddress from "../src/instructions/ld-address.js";
 import JPRegister from "../src/instructions/jp-register.js";
 import RND from "../src/instructions/rnd.js";
 import DRW from "../src/instructions/drw.js";
+import SKP from "../src/instructions/skp.js";
+import SKNP from "../src/instructions/sknp.js";
+import LDDelay from "../src/instructions/ld-delay.js";
+import SETDelay from "../src/instructions/set-delay.js";
+import SETSound from "../src/instructions/set-sound.js";
+import ADDAddress from "../src/instructions/add-address.js";
 
 describe("Instructions", () => {
 
@@ -968,5 +974,241 @@ describe("Instructions", () => {
         expect(chip8.screen.setPixel).toHaveBeenCalledWith(6, 1, 0);
         expect(chip8.screen.setPixel).toHaveBeenCalledWith(7, 1, 1);
         expect(chip8.screen.setPixel).toHaveBeenCalledWith(8, 1, 1);
+    });
+
+    test("execute Ex9E - SKP Vx instruction", () => {
+        const SKP_INSTRUCTION = 0xEB9E;
+        const REGISTER_X_VALUE = 0;
+        const CURRENT_PC = 0x300;
+        const instruction = new SKP(SKP_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.PC: return CURRENT_PC;
+                        case Registers.VB: return REGISTER_X_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+            keyboard: {
+                isPressed: jest.fn(() => true),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.keyboard.isPressed).toHaveBeenCalledWith(REGISTER_X_VALUE);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.PC, CURRENT_PC + 2);
+    });
+
+    test("execute Ex9E - SKP Vx instruction", () => {
+        const SKP_INSTRUCTION = 0xE29E;
+        const REGISTER_X_VALUE = 0xF;
+        const CURRENT_PC = 0x3FB;
+        const instruction = new SKP(SKP_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.PC: return CURRENT_PC;
+                        case Registers.V2: return REGISTER_X_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+            keyboard: {
+                isPressed: jest.fn(() => true),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.keyboard.isPressed).toHaveBeenCalledWith(REGISTER_X_VALUE);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.PC, CURRENT_PC + 2);
+    });
+
+    test("execute Ex9E - SKP Vx instruction (not pressed)", () => {
+        const SKP_INSTRUCTION = 0xE29E;
+        const REGISTER_X_VALUE = 0xF;
+        const CURRENT_PC = 0x3FB;
+        const instruction = new SKP(SKP_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.PC: return CURRENT_PC;
+                        case Registers.V2: return REGISTER_X_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+            keyboard: {
+                isPressed: jest.fn(() => false),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.keyboard.isPressed).toHaveBeenCalledWith(REGISTER_X_VALUE);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(0);
+    });
+
+    test("execute ExA1 - SKNP Vx instruction", () => {
+        const SKNP_INSTRUCTION = 0xE8A1;
+        const REGISTER_X_VALUE = 0xA;
+        const CURRENT_PC = 0x411;
+        const instruction = new SKNP(SKNP_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.PC: return CURRENT_PC;
+                        case Registers.V8: return REGISTER_X_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+            keyboard: {
+                isPressed: jest.fn(() => false),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.keyboard.isPressed).toHaveBeenCalledWith(REGISTER_X_VALUE);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.PC, CURRENT_PC + 2);
+    });
+
+    test("execute ExA1 - SKNP Vx instruction (pressed)", () => {
+        const SKNP_INSTRUCTION = 0xE8A1;
+        const REGISTER_X_VALUE = 0x7;
+        const CURRENT_PC = 0x411;
+        const instruction = new SKNP(SKNP_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.PC: return CURRENT_PC;
+                        case Registers.V8: return REGISTER_X_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            },
+            keyboard: {
+                isPressed: jest.fn(() => true),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.keyboard.isPressed).toHaveBeenCalledWith(REGISTER_X_VALUE);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(0);
+    });
+
+    test("execute Fx07 - LD Vx, DT instruction", () => {
+        const LD_DELAY_INSTRUCTION = 0xF407;
+        const DELAY_VALUE = 0x1F;
+        const instruction = new LDDelay(LD_DELAY_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.DELAY: return DELAY_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V4, DELAY_VALUE);
+    });
+
+    test.todo("Fx0A - LD Vx, K");
+
+    test("execute Fx15 - LD DT, Vx instruction", () => {
+        const SET_DELAY_INSTRUCTION = 0xF815;
+        const REGISTER_X_VALUE = 0x2B;
+        const instruction = new SETDelay(SET_DELAY_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.V8: return REGISTER_X_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.DELAY, REGISTER_X_VALUE);
+    });
+
+    test("execute Fx18 - LD ST, Vx instruction", () => {
+        const SET_SOUND_INSTRUCTION = 0xF815;
+        const REGISTER_X_VALUE = 0x2B;
+        const instruction = new SETSound(SET_SOUND_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.V8: return REGISTER_X_VALUE;
+                    }
+                }),
+                write: jest.fn(),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.SOUND, REGISTER_X_VALUE);
+    });
+
+    test("execute Fx1E - ADD I, Vx instruction", () => {
+        const ADD_ADDRESS_INSTRUCTION = 0xFC1E;
+        const REGISTER_X_VALUE = 0x11;
+        const CURRENT_I = 0x200;
+        const EXPECTED_RESULT = REGISTER_X_VALUE + CURRENT_I;
+        const instruction = new ADDAddress(ADD_ADDRESS_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.VC: return REGISTER_X_VALUE;
+                        case Registers.I: return CURRENT_I;
+                    }
+                }),
+                write: jest.fn(),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.write).toHaveBeenCalledTimes(1);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.I, EXPECTED_RESULT);
     });
 });
