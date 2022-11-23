@@ -28,6 +28,9 @@ import LDDelay from "../src/instructions/ld-delay.js";
 import SETDelay from "../src/instructions/set-delay.js";
 import SETSound from "../src/instructions/set-sound.js";
 import ADDAddress from "../src/instructions/add-address.js";
+import BCD from "../src/instructions/bcd.js";
+import WriteRange from "../src/instructions/write-range.js";
+import ReadRange from "../src/instructions/read-range.js";
 
 describe("Instructions", () => {
 
@@ -1210,5 +1213,98 @@ describe("Instructions", () => {
 
         expect(chip8.registers.write).toHaveBeenCalledTimes(1);
         expect(chip8.registers.write).toHaveBeenCalledWith(Registers.I, EXPECTED_RESULT);
+    });
+
+    test.todo("Fx29 - LD F, Vx");
+
+    test("Fx33 - LD B, Vx", () => {
+        const BCD_INSTRUCTION = 0xFC33;
+        const REGISTER_X_VALUE = 123;
+        const REGISTER_I_VALUE = 0x400;
+
+        const instruction = new BCD(BCD_INSTRUCTION);
+
+        const chip8 = {
+            ram: {
+                writeRange: jest.fn(),
+            },
+            registers: {
+                read: jest.fn(register => {
+                    switch (register) {
+                        case Registers.I: return REGISTER_I_VALUE;
+                        case Registers.VC: return REGISTER_X_VALUE;
+                    }
+                }),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.VC);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.I);
+
+        expect(chip8.ram.writeRange).toHaveBeenCalledWith(REGISTER_I_VALUE, [3, 2, 1]);
+    });
+
+    test("execute Fx55 - LD I, Vx instruction", () => {
+        const WRITE_RANGE_INSTRUCTION = 0xFF55;
+        const REGISTER_X = 0xF;
+        const REGISTER_I_VALUE = 0x400;
+
+        const instruction = new WriteRange(WRITE_RANGE_INSTRUCTION);
+
+        const chip8 = {
+            ram: {
+                writeRange: jest.fn(),
+            },
+            registers: {
+                readRange: jest.fn(() => {
+                    return Uint8Array.from([0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0xFA , 0xFB , 0x1C , 0x1D, 0x1E ,0x1F]);
+                }),
+                read: jest.fn(() => {
+                    return REGISTER_I_VALUE;
+                }),
+                write: jest.fn(),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.readRange).toHaveBeenCalledWith(Registers.V0, REGISTER_X + 1);
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.I);
+
+        expect(chip8.ram.writeRange).toHaveBeenCalledWith(REGISTER_I_VALUE, chip8.registers.readRange());
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.I, REGISTER_I_VALUE + REGISTER_X + 1);
+    });
+
+    test("execute Fx65 - LD Vx, I instruction", () => {
+        const READ_RANGE_INSTRUCTION = 0xFF65;
+        const REGISTER_X = 0xF;
+        const REGISTER_I_VALUE = 0x400;
+
+        const instruction = new ReadRange(READ_RANGE_INSTRUCTION);
+
+        const chip8 = {
+            ram: {
+                readRange: jest.fn(() => {
+                    return Uint8Array.from([0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0xFA , 0xFB , 0x1C , 0x1D, 0x1E ,0x1F]);
+                }),
+            },
+            registers: {
+                writeRange: jest.fn(),
+                read: jest.fn(() => {
+                    return REGISTER_I_VALUE;
+                }),
+                write: jest.fn(),
+            }
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(Registers.I);
+        expect(chip8.ram.readRange).toHaveBeenCalledWith(REGISTER_I_VALUE, REGISTER_X + 1);
+
+        expect(chip8.registers.writeRange).toHaveBeenCalledWith(Registers.V0, chip8.ram.readRange());
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.I, REGISTER_I_VALUE + REGISTER_X + 1);
     });
 });
