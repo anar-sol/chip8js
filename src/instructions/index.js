@@ -19,6 +19,20 @@ import SUBNRegisters from "./subn-registers.js";
 import SHL from "./shl.js";
 import SNERegisters from "./sne-registers.js";
 import LDAddress from "./ld-address.js";
+import RND from "./rnd.js";
+import DRW from "./drw.js";
+import JPRegister from "./jp-register.js";
+import SKP from "./skp.js";
+import SKNP from "./sknp.js";
+import SETDelay from "./set-delay.js";
+import WaitKey from "./wait-key.js";
+import LDDelay from "./ld-delay.js";
+import SETSound from "./set-sound.js";
+import ADDAddress from "./add-address.js";
+import LDSprite from "./ld-sprite.js";
+import BCD from "./bcd.js";
+import WriteRange from "./write-range.js";
+import ReadRange from "./read-range.js";
 
 export default class InstructionDecoder {
 
@@ -67,15 +81,52 @@ export default class InstructionDecoder {
                     case 0xE:
                         return new SHL(instruction);
                 }
-                break;
             case 0x9:
                 return new SNERegisters(instruction);
             case 0xA:
                 return new LDAddress(instruction);
+            case 0xB:
+                return new JPRegister(instruction);
+            case 0xC:
+                return new RND(instruction);
+            case 0xD:
+                return new DRW(instruction);
+            case 0xE:
+                switch (this.#getByte(instruction)) {
+                    case 0x9E:
+                        return new SKP(instruction);
+                    case 0xA1:
+                        return new SKNP(instruction);
+                }
+            case 0xF:
+                switch (this.#getByte(instruction)) {
+                    case 0x07:
+                        return new LDDelay(instruction);
+                    case 0x0A:
+                        return new WaitKey(instruction);
+                    case 0x15:
+                        return new SETDelay(instruction);
+                    case 0x18:
+                        return new SETSound(instruction);
+                    case 0x1E:
+                        return new ADDAddress(instruction);
+                    case 0x29:
+                        return new LDSprite(instruction);
+                    case 0x33:
+                        return new BCD(instruction);
+                    case 0x55:
+                        return new WriteRange(instruction);
+                    case 0x65:
+                        return new ReadRange(instruction);
+                }
         }
     }
 
     static #getOpcode(instruction) {
         return getNibble(instruction, 3);
+    }
+
+    static #getByte(instruction) {
+        return instruction & 0x00FF;
     }
 }
