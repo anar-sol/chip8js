@@ -25,9 +25,11 @@ import DRW from "../src/instructions/drw.js";
 import SKP from "../src/instructions/skp.js";
 import SKNP from "../src/instructions/sknp.js";
 import LDDelay from "../src/instructions/ld-delay.js";
+import WaitKey from "../src/instructions/wait-key.js";
 import SETDelay from "../src/instructions/set-delay.js";
 import SETSound from "../src/instructions/set-sound.js";
 import ADDAddress from "../src/instructions/add-address.js";
+import LDSprite from "../src/instructions/ld-sprite.js";
 import BCD from "../src/instructions/bcd.js";
 import WriteRange from "../src/instructions/write-range.js";
 import ReadRange from "../src/instructions/read-range.js";
@@ -1144,7 +1146,33 @@ describe("Instructions", () => {
         expect(chip8.registers.write).toHaveBeenCalledWith(Registers.V4, DELAY_VALUE);
     });
 
-    test.todo("Fx0A - LD Vx, K");
+    test("Fx0A - LD Vx, K", () => {
+        const WAIT_KEY_INSTRUCTION = 0xF50A;
+        const REGISTER_X = 0x5;
+        const KEY_VALUE = 0x8;
+        const instruction = new WaitKey(WAIT_KEY_INSTRUCTION);
+
+        const chip8 = {
+            pause: jest.fn(),
+            resume: jest.fn(),
+            onKeyPressed: jest.fn(callback => {
+                chip8.callback = callback;
+            }),
+            registers: {
+                write: jest.fn(),
+            }
+        }
+
+        instruction.execute(chip8);
+        expect(chip8.pause).toHaveBeenCalled();
+        expect(chip8.onKeyPressed).toHaveBeenCalledWith(expect.any(Function));
+        expect(chip8.resume).toHaveBeenCalledTimes(0);
+
+        chip8.callback(KEY_VALUE);
+
+        expect(chip8.registers.write).toHaveBeenCalledWith(REGISTER_X, KEY_VALUE);
+        expect(chip8.resume).toHaveBeenCalled();
+    });
 
     test("execute Fx15 - LD DT, Vx instruction", () => {
         const SET_DELAY_INSTRUCTION = 0xF815;
@@ -1215,7 +1243,28 @@ describe("Instructions", () => {
         expect(chip8.registers.write).toHaveBeenCalledWith(Registers.I, EXPECTED_RESULT);
     });
 
-    test.todo("Fx29 - LD F, Vx");
+    test("execute Fx29 - LD F, Vx", () => {
+        const LD_SPRITE_INSTRUCTION = 0xF929;
+        const REGISTER_X = 0x9;
+        const REGISTER_X_VALUE = 5;
+        const SPRITE_ADDR = 0x4;
+
+        const instruction = new LDSprite(LD_SPRITE_INSTRUCTION);
+
+        const chip8 = {
+            registers: {
+                read: jest.fn(() => REGISTER_X_VALUE),
+                write: jest.fn(),
+            },
+            getSpriteAddr: jest.fn(() => SPRITE_ADDR),
+        }
+
+        instruction.execute(chip8);
+
+        expect(chip8.registers.read).toHaveBeenCalledWith(REGISTER_X);
+        expect(chip8.getSpriteAddr).toHaveBeenCalledWith(REGISTER_X_VALUE);
+        expect(chip8.registers.write).toHaveBeenCalledWith(Registers.I, SPRITE_ADDR);
+    });
 
     test("Fx33 - LD B, Vx", () => {
         const BCD_INSTRUCTION = 0xFC33;
