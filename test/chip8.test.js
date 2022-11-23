@@ -1,8 +1,89 @@
 import fs from 'node:fs/promises';
 import Chip8 from '../src/chip8.js';
-import { Chip8Exception } from '../src/chip8.js';
+import { Chip8Exception } from '../src/~chip8.js';
 
 describe("Chip8", () => {
+    let rom;
+    let chip8;
+
+    beforeAll(async () => {
+        rom = Uint8Array.from(await fs.readFile('test/roms/IBM Logo.ch8'));
+    });
+
+    beforeEach(() => {
+        chip8 = Chip8.newChip8();
+    });
+
+    test('loadROM', () => {
+        chip8.loadROM(rom);
+        const ram = chip8.readRAMRange(chip8.progStartAddr, rom.length);
+        expect(ram).toEqual(rom);
+    });
+
+    test('loadROM sets PC to progStartAddr', () => {
+        chip8.loadROM(rom);
+        expect(chip8.pc).toBe(chip8.progStartAddr);
+    });
+
+    test('loadROM sets SP to 0', () => {
+        chip8.loadROM(rom);
+        expect(chip8.sp).toBe(0);
+    });
+
+    test('execute 00E0 CLS', () => {
+        const prog = Uint8Array.from([0x00, 0xE0]);
+        const screen = {
+            clear: jest.fn(),
+        };
+
+        chip8.screen = screen;
+        chip8.loadROM(prog);   
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(screen.clear).toHaveBeenCalled();
+        expect(chip8.pc).toBe(previousPC + 2);
+    });
+
+    test('instruction 00EE RET', () => {
+        const prog = Uint8Array.from([0x00, 0xEE, 0x00, 0x00, 0x00, 0x00]);
+        const RETURN_ADDRESS = 0x204;
+
+        chip8.loadROM(prog);
+        chip8.pushToStack(RETURN_ADDRESS);
+
+        chip8.execute();
+
+        expect(chip8.stack).toEqual([]);
+        expect(chip8.pc).toBe(RETURN_ADDRESS);
+    });
+
+    test('instruction 1nnn JP addr', () => {
+        const prog = Uint8Array.from([0x12, 0x04, 0x00, 0x00, 0x00, 0xE0]);
+
+        chip8.loadROM(prog);
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(0x204);
+    });
+
+    test('instruction 2nnn CALL addr', () => {
+        const prog = Uint8Array.from([0x22, 0x04, 0x00, 0x00, 0x00, 0xE0]);
+        const ADDR = 0x204;
+
+        chip8.loadROM(prog);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.stack).toEqual([previousPC + 2]);
+        expect(chip8.pc).toBe(ADDR);
+    });
+});
+
+describe.skip("Chip8", () => {
 
     const PROGRAM_START_ADDRESS = 512;
 
@@ -54,19 +135,19 @@ describe("Chip8", () => {
         chip8.loadProgram(IBMLogoProgram);
         const ram = chip8.ram.readRange(chip8.programStartAddress, IBMLogoProgram.length);
         expect(ram).toEqual(IBMLogoProgram);
-    });
+    }); // Done
 
     test('loadProgram() set PC to programStartAddress', () => {
         const chip8 = Chip8.newChip8();
         chip8.loadProgram(IBMLogoProgram);
         expect(chip8.programCounter).toBe(chip8.programStartAddress);
-    });
+    }); // Done
 
     test('loadProgram() set SP to 0', () => {
         const chip8 = Chip8.newChip8();
         chip8.loadProgram(IBMLogoProgram);
         expect(chip8.stackPointer).toBe(0);
-    });
+    }); // Done
 
     test('execute throws Chip8Exception when fetching unknown instruction 0x0', () => {
         const prog = Uint8Array.from([0x00, 0x00]);
@@ -113,7 +194,7 @@ describe("Chip8", () => {
 
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(clear).toHaveBeenCalledTimes(1);
-    });
+    }); // Done
 
     test('instruction 00EE RET', () => {
         const prog = Uint8Array.from([0x00, 0xEE, 0x00, 0x00, 0x00, 0x00]);
@@ -125,7 +206,7 @@ describe("Chip8", () => {
 
         expect(chip8.stackPointer).toBe(previousSP);
         expect(chip8.programCounter).toBe(0x204);
-    });
+    }); // Done
 
     test('instruction 1nnn JP addr', () => {
         const prog = Uint8Array.from([0x12, 0x04, 0x00, 0x00, 0x00, 0xE0]);
@@ -134,7 +215,7 @@ describe("Chip8", () => {
         chip8.execute();
 
         expect(chip8.programCounter).toBe(0x204);
-    });
+    }); // Done
 
     test('instruction 2nnn CALL addr', () => {
         const prog = Uint8Array.from([0x22, 0x04, 0x00, 0x00, 0x00, 0xE0]);
@@ -145,7 +226,7 @@ describe("Chip8", () => {
 
         expect(chip8.stack[chip8.stackPointer]).toBe(previousPC + 2);
         expect(chip8.programCounter).toBe(0x204);
-    });
+    }); // Done
 
     test('instruction 3xnn Skip next instruction if Vx == nn', () => {
         const prog = Uint8Array.from([0x30, 0x25, 0x00, 0x00, 0x00, 0x00]);
