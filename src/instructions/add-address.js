@@ -1,7 +1,7 @@
 import { Registers } from "../registers.js";
 import { Instruction } from "./instruction.js";
 
-export default class LDDelay extends Instruction {
+export default class ADDAddress extends Instruction {
 
     constructor(instruction) {
         super(instruction);
