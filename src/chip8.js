@@ -23,6 +23,10 @@ export default class Chip8 {
         return this.#registers.read(Registers.PC);
     }
 
+    set pc(value) {
+        this.#registers.write(Registers.PC, value)
+    }
+
     get sp() {
         return this.#registers.read(Registers.SP);
     }
@@ -53,8 +57,14 @@ export default class Chip8 {
 
     loadROM(rom) {
         this.#ram.writeRange(PROG_START_ADDR, rom);
-        this.#registers.write(Registers.PC, PROG_START_ADDR);
-        this.#registers.write(Registers.SP, 0);
+    }
+
+    readRegister(register) {
+        return this.#registers.read(register);
+    }
+
+    writeRegister(register, value) {
+        this.#registers.write(register, value);
     }
 
     readRAMRange(address, length) {
@@ -74,15 +84,16 @@ export default class Chip8 {
         this.#ram = RAM.newRAM(RAM_SIZE);
         this.#registers = Registers.newRegisters();
         this.#stack = new Array();
+        this.#registers.write(Registers.PC, PROG_START_ADDR);
+        this.#registers.write(Registers.SP, 0);
     }
 
     #incrementPC() {
-        const previousValue = this.#registers.read(Registers.PC);
-        this.#registers.write(Registers.PC, previousValue + 2);
+        this.pc += 2;
     }
 
     #fetch() {
-        const instruction = this.#ram.readDoubleByte(this.#registers.read(Registers.PC));
+        const instruction = this.#ram.readDoubleByte(this.pc);
         this.#incrementPC();
         return instruction;
     }

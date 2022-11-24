@@ -37,7 +37,7 @@ describe("Chip8", () => {
         };
 
         chip8.screen = screen;
-        chip8.loadROM(prog);   
+        chip8.loadROM(prog);
         const previousPC = chip8.pc;
 
         chip8.execute();
@@ -80,6 +80,284 @@ describe("Chip8", () => {
 
         expect(chip8.stack).toEqual([previousPC + 2]);
         expect(chip8.pc).toBe(ADDR);
+    });
+
+    test('instruction 3xnn Skip next instruction if Vx == nn', () => {
+        const prog = Uint8Array.from([0x30, 0x25, 0x00, 0x00, 0x00, 0x00]);
+        const REGISTER_X = 0x0;
+        const BYTE_VALUE = 0x25;
+        const REGISTER_X_VALUE = BYTE_VALUE;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 4);
+    });
+
+    test('instruction 3xnn does not Skip next instruction if Vx != nn', () => {
+        const prog = Uint8Array.from([0x3E, 0x25, 0x00, 0x00, 0x00, 0x00]);
+        const REGISTER_X = 0xE;
+        const BYTE_VALUE = 0x25;
+        const REGISTER_X_VALUE = BYTE_VALUE + 1;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+    });
+
+    test('instruction 4xnn Skip next instruction if Vx != nn', () => {
+        const prog = Uint8Array.from([0x4C, 0x7F, 0x00, 0x00, 0x00, 0x00]);
+        const REGISTER_X = 0xC;
+        const BYTE_VALUE = 0x7F;
+        const REGISTER_X_VALUE = BYTE_VALUE + 1;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 4);
+    });
+
+    test('instruction 4xnn does not Skip next instruction if Vx == nn', () => {
+        const prog = Uint8Array.from([0x4A, 0xF1, 0x00, 0x00, 0x00, 0x00]);
+        const REGISTER_X = 0xA;
+        const BYTE_VALUE = 0xF1;
+        const REGISTER_X_VALUE = BYTE_VALUE;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+    });
+
+    test('instruction 5xy0 Skip next instruction if Vx == Vy', () => {
+        const prog = Uint8Array.from([0x50, 0xE0, 0x00, 0x00, 0x00, 0x00]);
+        const REGISTER_X = 0x0;
+        const REGISTER_Y = 0xE;
+        const REGISTER_X_VALUE = 0xF5;
+        const REGISTER_Y_VALUE = REGISTER_X_VALUE;
+
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 4);
+    });
+
+    test('instruction 5xy0 does not Skip next instruction if Vx != Vy', () => {
+        const prog = Uint8Array.from([0x50, 0xE0, 0x00, 0x00, 0x00, 0x00]);
+        const REGISTER_X = 0x0;
+        const REGISTER_Y = 0xE;
+        const REGISTER_X_VALUE = 0xF5;
+        const REGISTER_Y_VALUE = 0xE2;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+    });
+
+    test('instruction 6xnn LD nn to Vx', () => {
+        const prog = Uint8Array.from([0x60, 0xF1]);
+        const REGISTER_X = 0x0;
+        const BYTE_VALUE = 0xF1;
+
+        chip8.loadROM(prog);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(BYTE_VALUE);
+    });
+
+    test('instruction 7xnn ADD nn to Vx', () => {
+        const prog = Uint8Array.from([0x71, 0x2F]);
+        const REGISTER_X = 0x1;
+        const REGISTER_X_VALUE = 0x20;
+        const BYTE_VALUE = 0x2F;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(REGISTER_X_VALUE + BYTE_VALUE);
+    });
+
+    test('instruction 8xy0 LD stores value of Vy in Vx', () => {
+        const prog = Uint8Array.from([0x83, 0xB0, 0x00, 0x00]);
+        const REGISTER_X = 0x3;
+        const REGISTER_Y = 0xB;
+        const REGISTER_X_VALUE = 0xF5;
+        const REGISTER_Y_VALUE = 0xE2;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_Y)).toBe(REGISTER_Y_VALUE);
+        expect(chip8.readRegister(REGISTER_X)).toBe(chip8.readRegister(REGISTER_Y));
+    });
+
+    test('instruction 8xy1 OR bitwise OR on Vx and Vy, stores the result in Vx', () => {
+        const prog = Uint8Array.from([0x81, 0x01, 0x00, 0x00]);
+        const REGISTER_X = 0x1;
+        const REGISTER_Y = 0x0;
+        const REGISTER_X_VALUE = 0b1100_1100;
+        const REGISTER_Y_VALUE = 0b0110_1110;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(REGISTER_X_VALUE | REGISTER_Y_VALUE);
+    });
+
+    test('instruction 8xy2 bitwise AND on Vx and Vy, stores the result in Vx', () => {
+        const prog = Uint8Array.from([0x8A, 0xC2, 0x00, 0x00]);
+        const REGISTER_X = 0xA;
+        const REGISTER_Y = 0xC;
+        const REGISTER_X_VALUE = 0b1100_1100;
+        const REGISTER_Y_VALUE = 0b0110_1110;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(REGISTER_X_VALUE & REGISTER_Y_VALUE);
+    });
+
+    test('instruction 8xy3 bitwise XOR on Vx and Vy, stores the result in Vx', () => {
+        const prog = Uint8Array.from([0x8A, 0x93, 0x00, 0x00]);
+        const REGISTER_X = 0xA;
+        const REGISTER_Y = 0x9;
+        const REGISTER_X_VALUE = 0b1100_1100;
+        const REGISTER_Y_VALUE = 0b0110_1110;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(REGISTER_X_VALUE ^ REGISTER_Y_VALUE);
+    });
+
+    test('instruction 8xy4 ADD Vx and Vy, stores the result in Vx, VF = carry', () => {
+        const prog = Uint8Array.from([0x8A, 0x94, 0x00, 0x00]);
+        const REGISTER_X = 0xA;
+        const REGISTER_Y = 0x9;
+        const REGISTER_X_VALUE = 0x1F;
+        const REGISTER_Y_VALUE = 0x0F;
+        const CARRY_REGISTER = 0xF;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(REGISTER_X_VALUE + REGISTER_Y_VALUE);
+        expect(chip8.readRegister(CARRY_REGISTER)).toBe(0);
+    });
+
+    test('instruction 8xy4 ADD Vx and Vy, stores the result in Vx, VF = carry (result > 255)', () => {
+        const prog = Uint8Array.from([0x8A, 0x94, 0x00, 0x00]);
+        const REGISTER_X = 0xA;
+        const REGISTER_Y = 0x9;
+        const REGISTER_X_VALUE = 0xFE;
+        const REGISTER_Y_VALUE = 0x2;
+        const CARRY_REGISTER = 0xF;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe((REGISTER_X_VALUE + REGISTER_Y_VALUE) & 0xFF);
+        expect(chip8.readRegister(CARRY_REGISTER)).toBe(1);
+    });
+
+    test('instruction 8xy5 SUB Vy from Vx, stores the result in Vx, if Vx > Vy VF = 1', () => {
+        const prog = Uint8Array.from([0x87, 0x85, 0x00, 0x00]);
+        const REGISTER_X = 0x7;
+        const REGISTER_Y = 0x8;
+        const REGISTER_X_VALUE = 0x1F;
+        const REGISTER_Y_VALUE = 0x0F;
+        const BORROW_REGISTER = 0xF;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe((REGISTER_X_VALUE - REGISTER_Y_VALUE) & 0xFF);
+        expect(chip8.readRegister(BORROW_REGISTER)).toBe(1);
+    });
+
+    test('instruction 8xy5 SUB Vy from Vx, stores the result in Vx, if Vx > Vy VF = 1 (result < 0)', () => {
+        const prog = Uint8Array.from([0x87, 0x85, 0x00, 0x00]);
+        const REGISTER_X = 0x7;
+        const REGISTER_Y = 0x8;
+        const REGISTER_X_VALUE = 0x1F;
+        const REGISTER_Y_VALUE = 0x2F;
+        const BORROW_REGISTER = 0xF;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe((REGISTER_X_VALUE - REGISTER_Y_VALUE) & 0xFF);
+        expect(chip8.readRegister(BORROW_REGISTER)).toBe(0);
     });
 });
 
@@ -237,7 +515,7 @@ describe.skip("Chip8", () => {
         chip8.execute();
 
         expect(chip8.programCounter).toBe(previousPC + 4);
-    });
+    }); // Done
 
     test('instruction 3xnn does not Skip next instruction if Vx != nn', () => {
         const prog = Uint8Array.from([0x3E, 0x25, 0x00, 0x00, 0x00, 0x00]);
@@ -248,7 +526,7 @@ describe.skip("Chip8", () => {
         chip8.execute();
 
         expect(chip8.programCounter).toBe(previousPC + 2);
-    });
+    }); // Done
 
     test('instruction 4xnn Skip next instruction if Vx != nn', () => {
         const prog = Uint8Array.from([0x4C, 0x7F, 0x00, 0x00, 0x00, 0x00]);
@@ -259,7 +537,7 @@ describe.skip("Chip8", () => {
         chip8.execute();
 
         expect(chip8.programCounter).toBe(previousPC + 4);
-    });
+    }); // Done
 
     test('instruction 4xnn does not Skip next instruction if Vx == nn', () => {
         const prog = Uint8Array.from([0x4A, 0xF1, 0x00, 0x00, 0x00, 0x00]);
@@ -270,7 +548,7 @@ describe.skip("Chip8", () => {
         chip8.execute();
 
         expect(chip8.programCounter).toBe(previousPC + 2);
-    });
+    }); // Done
 
     test('instruction 5xy0 Skip next instruction if Vx == Vy', () => {
         const prog = Uint8Array.from([0x50, 0xE0, 0x00, 0x00, 0x00, 0x00]);
@@ -282,7 +560,7 @@ describe.skip("Chip8", () => {
         chip8.execute();
 
         expect(chip8.programCounter).toBe(previousPC + 4);
-    });
+    }); // Done
 
     test('instruction 5xy0 does not Skip next instruction if Vx != Vy', () => {
         const prog = Uint8Array.from([0x5A, 0x20, 0x00, 0x00, 0x00, 0x00]);
@@ -294,7 +572,7 @@ describe.skip("Chip8", () => {
         chip8.execute();
 
         expect(chip8.programCounter).toBe(previousPC + 2);
-    });
+    }); // Done
 
 
     test('instruction 6xnn LD nn to Vx', () => {
@@ -306,7 +584,7 @@ describe.skip("Chip8", () => {
 
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0]).toBe(0xF1);
-    });
+    }); // Done
 
     test('instruction 7xnn ADD nn to Vx', () => {
         const prog = Uint8Array.from([0x71, 0x2F]);
@@ -318,7 +596,7 @@ describe.skip("Chip8", () => {
 
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[1]).toBe(0x32);
-    });
+    }); // Done
 
     test('instruction 8xy0 LD stores value of Vy in Vx', () => {
         const prog = Uint8Array.from([0x83, 0xB0, 0x00, 0x00]);
@@ -331,7 +609,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0xB]).toBe(0x1F);
         expect(chip8.generalRegisters[0x3]).toBe(chip8.generalRegisters[0xB]);
-    });
+    }); // Done
 
     test('instruction 8xy1 OR bitwise OR on Vx and Vy, stores the result in Vx', () => {
         const prog = Uint8Array.from([0x81, 0x01, 0x00, 0x00]);
@@ -346,7 +624,7 @@ describe.skip("Chip8", () => {
 
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x1]).toBe(value1 | value2);
-    });
+    }); // Done
 
     test('instruction 8xy2 bitwise AND on Vx and Vy, stores the result in Vx', () => {
         const prog = Uint8Array.from([0x8A, 0xC2, 0x00, 0x00]);
@@ -361,7 +639,7 @@ describe.skip("Chip8", () => {
 
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0xA]).toBe(value1 & value2);
-    });
+    }); // Done
 
     test('instruction 8xy3 bitwise XOR on Vx and Vy, stores the result in Vx', () => {
         const prog = Uint8Array.from([0x8A, 0x93, 0x00, 0x00]);
@@ -376,7 +654,7 @@ describe.skip("Chip8", () => {
 
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0xA]).toBe(value1 ^ value2);
-    });
+    }); // Done
 
     test('instruction 8xy4 ADD Vx and Vy, stores the result in Vx, VF = carry', () => {
         const prog = Uint8Array.from([0x8A, 0x94, 0x00, 0x00]);
@@ -392,7 +670,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0xA]).toBe(value1 + value2);
         expect(chip8.generalRegisters[0xF]).toBe(0);
-    });
+    }); // Done
 
     test('instruction 8xy5 SUB Vy from Vx, stores the result in Vx, if Vx > Vy VF = 1', () => {
         const prog = Uint8Array.from([0x87, 0x85, 0x00, 0x00]);
@@ -408,7 +686,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x7]).toBe(value1 - value2);
         expect(chip8.generalRegisters[0xF]).toBe(1);
-    });
+    }); // Done
 
     test('instruction 8xy5 SUB Vy from Vx, stores the result in Vx, if Vx > Vy VF = 1', () => {
         const prog = Uint8Array.from([0x87, 0x85, 0x00, 0x00]);
@@ -424,7 +702,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x7]).toBe((value1 - value2) & 0xFF);
         expect(chip8.generalRegisters[0xF]).toBe(0);
-    });
+    }); // Done
 
     test('instruction 8xy6 SHR If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2', () => {
         const prog = Uint8Array.from([0x83, 0x06, 0x00, 0x00]);
