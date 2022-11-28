@@ -359,6 +359,138 @@ describe("Chip8", () => {
         expect(chip8.readRegister(REGISTER_X)).toBe((REGISTER_X_VALUE - REGISTER_Y_VALUE) & 0xFF);
         expect(chip8.readRegister(BORROW_REGISTER)).toBe(0);
     });
+
+    test('instruction 8xy6 SHR If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 1.', () => {
+        const prog = Uint8Array.from([0x83, 0x06, 0x00, 0x00]);
+        const REGISTER_X = 0x3;
+        const REGISTER_Y = 0x0;
+        const REGISTER_X_VALUE = 0x0;
+        const REGISTER_Y_VALUE = 0b0101_0101;
+        const FLAG_REGISTER = 0xF;
+        const EXPECTED_RESULT = 0b0010_1010;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(EXPECTED_RESULT);
+        expect(chip8.readRegister(REGISTER_Y)).toBe(REGISTER_Y_VALUE);
+        expect(chip8.readRegister(FLAG_REGISTER)).toBe(1);
+    });
+
+    test('instruction 8xy6 SHR If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0.', () => {
+        const prog = Uint8Array.from([0x83, 0x06, 0x00, 0x00]);
+        const REGISTER_X = 0x3;
+        const REGISTER_Y = 0x0;
+        const REGISTER_X_VALUE = 0x0;
+        const REGISTER_Y_VALUE = 0b0101_0100;
+        const FLAG_REGISTER = 0xF;
+        const EXPECTED_RESULT = 0b0010_1010;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(EXPECTED_RESULT);
+        expect(chip8.readRegister(REGISTER_Y)).toBe(REGISTER_Y_VALUE);
+        expect(chip8.readRegister(FLAG_REGISTER)).toBe(0);
+    });
+
+    test('instruction 8xy7 SUB Vx from Vy, stores the result in Vx, if Vy > Vx VF = 1', () => {
+        const prog = Uint8Array.from([0x87, 0x87, 0x00, 0x00]);
+        const REGISTER_X = 0x7;
+        const REGISTER_Y = 0x8;
+        const REGISTER_X_VALUE = 0x1F;
+        const REGISTER_Y_VALUE = 0x0F;
+        const FLAG_REGISTER = 0xF;
+        const EXPECTED_RESULT = (REGISTER_Y_VALUE - REGISTER_X_VALUE) & 0xFF;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+        
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(EXPECTED_RESULT);
+        expect(chip8.readRegister(REGISTER_Y)).toBe(REGISTER_Y_VALUE);
+        expect(chip8.readRegister(FLAG_REGISTER)).toBe(0);
+    });
+
+    test('instruction 8xy7 SUB Vx from Vy, stores the result in Vx, if Vy > Vx VF = 1', () => {
+        const prog = Uint8Array.from([0x87, 0x87, 0x00, 0x00]);
+        const REGISTER_X = 0x7;
+        const REGISTER_Y = 0x8;
+        const REGISTER_X_VALUE = 0x1F;
+        const REGISTER_Y_VALUE = 0x2F;
+        const FLAG_REGISTER = 0xF;
+        const EXPECTED_RESULT = (REGISTER_Y_VALUE - REGISTER_X_VALUE) & 0xFF;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+        
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(EXPECTED_RESULT);
+        expect(chip8.readRegister(REGISTER_Y)).toBe(REGISTER_Y_VALUE);
+        expect(chip8.readRegister(FLAG_REGISTER)).toBe(1);
+    });
+
+    test('instruction 8xyE SHL If the most-significant bit of Vx is 1, then VF is set to 1, otherwise 0.', () => {
+        const prog = Uint8Array.from([0x83, 0x0E, 0x00, 0x00]);
+        const REGISTER_X = 0x3;
+        const REGISTER_Y = 0x0;
+        const REGISTER_X_VALUE = 0x0;
+        const REGISTER_Y_VALUE = 0b1101_0101;
+        const FLAG_REGISTER = 0xF;
+        const EXPECTED_RESULT = 0b1010_1010;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(EXPECTED_RESULT);
+        expect(chip8.readRegister(REGISTER_Y)).toBe(REGISTER_Y_VALUE);
+        expect(chip8.readRegister(FLAG_REGISTER)).toBe(1);
+    });
+
+    test('instruction 8xyE SHL If the most-significant bit of Vx is 1, then VF is set to 1, otherwise 0.', () => {
+        const prog = Uint8Array.from([0x83, 0x0E, 0x00, 0x00]);
+        const REGISTER_X = 0x3;
+        const REGISTER_Y = 0x0;
+        const REGISTER_X_VALUE = 0x0;
+        const REGISTER_Y_VALUE = 0b0101_0101;
+        const FLAG_REGISTER = 0xF;
+        const EXPECTED_RESULT = 0b1010_1010;
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.writeRegister(REGISTER_Y, REGISTER_Y_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.readRegister(REGISTER_X)).toBe(EXPECTED_RESULT);
+        expect(chip8.readRegister(REGISTER_Y)).toBe(REGISTER_Y_VALUE);
+        expect(chip8.readRegister(FLAG_REGISTER)).toBe(0);
+    });
 });
 
 describe.skip("Chip8", () => {
@@ -716,7 +848,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x3]).toBe(value >>> 1);
         expect(chip8.generalRegisters[0xF]).toBe(0);
-    });
+    }); // Done
 
     test('instruction 8xy6 SHR If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2', () => {
         const prog = Uint8Array.from([0x83, 0x06, 0x00, 0x00]);
@@ -730,7 +862,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x3]).toBe(value >>> 1);
         expect(chip8.generalRegisters[0xF]).toBe(1);
-    });
+    }); // Done
 
     test('instruction 8xy7 SUB Vx from Vy, stores the result in Vx, if Vy > Vx VF = 1', () => {
         const prog = Uint8Array.from([0x87, 0x87, 0x00, 0x00]);
@@ -746,7 +878,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x7]).toBe((value2 - value1) & 0xFF);
         expect(chip8.generalRegisters[0xF]).toBe(0);
-    });
+    }); // Done
 
     test('instruction 8xy7 SUB Vx from Vy, stores the result in Vx, if Vy > Vx VF = 1', () => {
         const prog = Uint8Array.from([0x87, 0x87, 0x00, 0x00]);
@@ -762,7 +894,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x7]).toBe(value2 - value1);
         expect(chip8.generalRegisters[0xF]).toBe(1);
-    });
+    }); // Done
 
     test('instruction 8xyE SHL If the most-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is mul by 2', () => {
         const prog = Uint8Array.from([0x83, 0x0E, 0x00, 0x00]);
@@ -776,7 +908,7 @@ describe.skip("Chip8", () => {
         expect(chip8.programCounter).toBe(previousPC + 2);
         expect(chip8.generalRegisters[0x3]).toBe(value << 1);
         expect(chip8.generalRegisters[0xF]).toBe(0);
-    });
+    }); // Done
 
     test('instruction 8xyE SHL If the most-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is mul by 2', () => {
         const prog = Uint8Array.from([0x83, 0x0E, 0x00, 0x00]);
