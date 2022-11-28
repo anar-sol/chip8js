@@ -570,7 +570,7 @@ describe("Instructions", () => {
     });
 
     test("execute 8xy7 - SUB Vx, Vy, registers instructions", () => {
-        const SUB_REGISTERS_INSTRUCTIONS = 0x86C5;
+        const SUB_REGISTERS_INSTRUCTIONS = 0x86C7;
         const REGISTER_X_VALUE = 0x10;
         const REGISTER_Y_VALUE = 0x1E;
         const EXPECTED_RESULT = REGISTER_Y_VALUE - REGISTER_X_VALUE;
