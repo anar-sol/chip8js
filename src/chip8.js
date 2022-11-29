@@ -5,11 +5,42 @@ import InstructionDecoder from "./instructions/index.js";
 const RAM_SIZE = 4096;
 const PROG_START_ADDR = 0x200;
 
+class Keyboard {
+    #keys;
+    #callback;
+
+    constructor() {
+        this.#keys = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false];
+        this.#callback = null;
+    }
+
+    pressKey(key) {
+        this.#keys[key] = true;
+        if (this.#callback !== null) {
+            this.#callback(key);
+        }
+    }
+
+    releaseKey(key) {
+        this.#keys[key] = false;
+    }
+
+    isPressed(key) {
+        return this.#keys[key];
+    }
+
+    onKeyPressed(callback) {
+        this.#callback = callback;
+    }
+}
+
 export default class Chip8 {
     #ram;
     #registers;
     #stack;
     #screen;
+    #keyboard;
+    #isRunning;
 
     constructor() {
         this.#init();
@@ -25,6 +56,26 @@ export default class Chip8 {
 
     set pc(value) {
         this.#registers.write(Registers.PC, value)
+    }
+
+    get i() {
+        return this.#registers.read(Registers.I);
+    }
+
+    set i(value) {
+        this.#registers.write(Registers.I, value)
+    }
+
+    get dt() {
+        return this.#registers.read(Registers.DELAY);
+    }
+
+    set dt(value) {
+        this.#registers.write(Registers.DELAY, value)
+    }
+
+    get st() {
+        return this.#registers.read(Registers.SOUND);
     }
 
     get sp() {
@@ -55,8 +106,24 @@ export default class Chip8 {
         this.#screen = screen;
     }
 
+    get keyboard() {
+        return this.#keyboard;
+    }
+
+    get isRunning() {
+        return this.#isRunning;
+    }
+
     loadROM(rom) {
         this.#ram.writeRange(PROG_START_ADDR, rom);
+    }
+
+    pause() {
+        this.#isRunning = false;
+    }
+
+    resume() {
+        this.#isRunning = true;
     }
 
     readRegister(register) {
@@ -86,6 +153,8 @@ export default class Chip8 {
         this.#stack = new Array();
         this.#registers.write(Registers.PC, PROG_START_ADDR);
         this.#registers.write(Registers.SP, 0);
+        this.#keyboard = new Keyboard();
+        this.#isRunning = true;
     }
 
     #incrementPC() {
