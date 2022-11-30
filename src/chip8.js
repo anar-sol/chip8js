@@ -1,6 +1,7 @@
 import { RAM } from "./ram.js";
 import { Registers } from "./registers.js";
 import InstructionDecoder from "./instructions/index.js";
+import fontSprites from "./font-sprites.js";
 
 const RAM_SIZE = 4096;
 const PROG_START_ADDR = 0x200;
@@ -142,6 +143,10 @@ export default class Chip8 {
         this.#stack.push(address);
     }
 
+    getSpriteAddr(sprite) {
+        return sprite * fontSprites[0].length;
+    }
+
     execute() {
         const instruction =  InstructionDecoder.decode(this.#fetch());
         instruction.execute(this);
@@ -155,6 +160,15 @@ export default class Chip8 {
         this.#registers.write(Registers.SP, 0);
         this.#keyboard = new Keyboard();
         this.#isRunning = true;
+        this.#loadSprites();
+    }
+
+    #loadSprites() {
+        let addr = 0;
+        for (const sprite of fontSprites) {
+            this.#ram.writeRange(addr, sprite);
+            addr += sprite.length;
+        }
     }
 
     #incrementPC() {

@@ -842,7 +842,7 @@ describe("Chip8", () => {
         const prog = Uint8Array.from([0xF8, 0x0A]);
         const REGISTER_X = 0x8;
         const KEY = 0xA;
-        
+
         chip8.loadROM(prog);
         const previousPC = chip8.pc;
 
@@ -903,95 +903,11 @@ describe("Chip8", () => {
         expect(chip8.pc).toBe(previousPC + 2);
         expect(chip8.i).toBe(REGISTER_X_VALUE + REGISTER_I_VALUE);
     });
-});
-
-describe.skip("Chip8", () => {
-
-    const PROGRAM_START_ADDRESS = 512;
-
-    let IBMLogoProgram;
-    let chip8;
-
-    beforeAll(async () => {
-        IBMLogoProgram = Uint8Array.from(await fs.readFile('test/roms/IBM Logo.ch8'));
-    });
-
-    beforeEach(() => {
-        chip8 = Chip8.newChip8();
-    });
-
-    test(`programs start at location ${PROGRAM_START_ADDRESS}`, () => {
-        expect(chip8.programStartAddress).toBe(PROGRAM_START_ADDRESS);
-    });
-
-    test('has 16 general purpose 8-bit registers', () => {
-        expect(Chip8.newChip8().generalRegisters).toHaveLength(16);
-    });
-
-    test('has a 16-bit addressRegister', () => {
-        expect(typeof Chip8.newChip8().addressRegister).toBe('number');
-    });
-
-    test('has a 8-bit sound timer register', () => {
-        expect(typeof Chip8.newChip8().soundTimer).toBe('number');
-    });
-
-    test('has a 8-bit delay timer register', () => {
-        expect(typeof Chip8.newChip8().delayTimer).toBe('number');
-    });
-
-    test('has a 16-bit program counter register', () => {
-        expect(typeof Chip8.newChip8().programCounter).toBe('number');
-    });
-
-    test('has a 8-bit stack pointer register', () => {
-        expect(typeof Chip8.newChip8().stackPointer).toBe('number');
-    });
-
-    test('has a stack of 16 16-bit values', () => {
-        expect(Chip8.newChip8().stack).toHaveLength(16);
-    });
-
-    test('execute throws Chip8Exception when fetching unknown instruction 0x0', () => {
-        const prog = Uint8Array.from([0x00, 0x00]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-
-        expect(() => { chip8.execute(); }).toThrow(Chip8Exception);
-    });
-
-    test('execute throws Chip8Exception when fetching unknown instruction 0x8', () => {
-        const prog = Uint8Array.from([0x80, 0x08]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-
-        expect(() => { chip8.execute(); }).toThrow(Chip8Exception);
-    });
-
-    test('execute throws Chip8Exception when fetching unknown instruction 0xE', () => {
-        const prog = Uint8Array.from([0xE0, 0x00]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-
-        expect(() => { chip8.execute(); }).toThrow(Chip8Exception);
-    });
-
-    test('execute throws Chip8Exception when fetching unknown instruction 0xF', () => {
-        const prog = Uint8Array.from([0xF0, 0x00]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-
-        expect(() => { chip8.execute(); }).toThrow(Chip8Exception);
-    });
 
     test('instruction Fx29 - LD F, Vx: Set I = location of sprite for digit Vx', () => {
         const prog = Uint8Array.from([0xF9, 0x29]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-        chip8.generalRegisters[0x9] = 0x0;
-        const previousPC = chip8.programCounter;
-        chip8.execute();
-
+        const REGISTER_X = 0x7;
+        const REGISTER_X_VALUE = 0x0;
         const sprite = Uint8Array.from([
             0b11110000,
             0b10010000,
@@ -999,20 +915,23 @@ describe.skip("Chip8", () => {
             0b10010000,
             0b11110000,
         ]);
-        const ram = chip8.ram.readRange(chip8.addressRegister, sprite.length);
 
-        expect(chip8.programCounter).toBe(previousPC + 2);
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        const ram = chip8.readRAMRange(chip8.i, sprite.length);
+
+        expect(chip8.pc).toBe(previousPC + 2);
         expect(ram).toEqual(sprite);
     });
 
     test('instruction Fx29 - LD F, Vx: Set I = location of sprite for digit Vx', () => {
         const prog = Uint8Array.from([0xF9, 0x29]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-        chip8.generalRegisters[0x9] = 0xF;
-        const previousPC = chip8.programCounter;
-        chip8.execute();
-
+        const REGISTER_X = 0x9;
+        const REGISTER_X_VALUE = 0xF;
         const sprite = Uint8Array.from([
             0b11110000,
             0b10000000,
@@ -1020,69 +939,109 @@ describe.skip("Chip8", () => {
             0b10000000,
             0b10000000,
         ]);
-        const ram = chip8.ram.readRange(chip8.addressRegister, sprite.length);
 
-        expect(chip8.programCounter).toBe(previousPC + 2);
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        const previousPC = chip8.pc;
+
+        chip8.execute();
+
+        const ram = chip8.readRAMRange(chip8.i, sprite.length);
+
+        expect(chip8.pc).toBe(previousPC + 2);
         expect(ram).toEqual(sprite);
     });
 
     test('instruction Fx33 - LD B, Vx: Store BCD representation of Vx in memory locations I, I+1, and I+2', () => {
         const prog = Uint8Array.from([0xFE, 0x33]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-        chip8.generalRegisters[0xE] = 123;
-        chip8.addressRegister = 0x204;
-        const previousPC = chip8.programCounter;
+        const REGISTER_X = 0xE;
+        const REGISTER_X_VALUE = 123;
+        const REGISTER_I_VALUE = 0x204;
+        const bcd = Uint8Array.from([1, 2, 3]);
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(REGISTER_X, REGISTER_X_VALUE);
+        chip8.i = REGISTER_I_VALUE;
+        const previousPC = chip8.pc;
+
         chip8.execute();
 
-        const bcd = Uint8Array.from([1, 2, 3]);
-        const ram = chip8.ram.readRange(0x204, bcd.length);
+        const ram = chip8.readRAMRange(REGISTER_I_VALUE, bcd.length);
 
-        expect(chip8.programCounter).toBe(previousPC + 2);
+        expect(chip8.pc).toBe(previousPC + 2);
         expect(ram).toEqual(bcd);
     });
 
     test('instruction Fx55 - LD [I], Vx, Vx: Store registers V0 through Vx in memory starting at location I', () => {
         const prog = Uint8Array.from([0xFF, 0x55]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-        chip8.addressRegister = 0x204;
-        chip8.generalRegisters[0x0] = 0xF0;
-        chip8.generalRegisters[0x1] = 0xF1;
-        chip8.generalRegisters[0x2] = 0xF2;
-        chip8.generalRegisters[0x3] = 0xF3;
-        chip8.generalRegisters[0x4] = 0xF4;
-        chip8.generalRegisters[0x5] = 0xF5;
-        chip8.generalRegisters[0x6] = 0xF6;
-        chip8.generalRegisters[0x7] = 0xF7;
-        chip8.generalRegisters[0x8] = 0xF8;
-        chip8.generalRegisters[0x9] = 0xF9;
-        chip8.generalRegisters[0xA] = 0xFA;
-        chip8.generalRegisters[0xB] = 0xFB;
-        chip8.generalRegisters[0xC] = 0xFC;
-        chip8.generalRegisters[0xD] = 0xFD;
-        chip8.generalRegisters[0xE] = 0xFE;
-        chip8.generalRegisters[0xF] = 0xFF;
-        const previousPC = chip8.programCounter;
+        const REGISTER_X = 0xF;
+        const REGISTER_I_VALUE = 0x204;
+        const registerValues = [
+            0xF0, 0xF1, 0xF2, 0xF3,
+            0xF4, 0xF5, 0xF6, 0xF7,
+            0xF8, 0xF9, 0xFA, 0xFB,
+            0xFC, 0xFD, 0xFE, 0xFF
+        ];
+
+        chip8.loadROM(prog);
+        chip8.writeRegister(0x0, registerValues[0x0]);
+        chip8.writeRegister(0x1, registerValues[0x1]);
+        chip8.writeRegister(0x2, registerValues[0x2]);
+        chip8.writeRegister(0x3, registerValues[0x3]);
+        chip8.writeRegister(0x4, registerValues[0x4]);
+        chip8.writeRegister(0x5, registerValues[0x5]);
+        chip8.writeRegister(0x6, registerValues[0x6]);
+        chip8.writeRegister(0x7, registerValues[0x7]);
+        chip8.writeRegister(0x8, registerValues[0x8]);
+        chip8.writeRegister(0x9, registerValues[0x9]);
+        chip8.writeRegister(0xA, registerValues[0xA]);
+        chip8.writeRegister(0xB, registerValues[0xB]);
+        chip8.writeRegister(0xC, registerValues[0xC]);
+        chip8.writeRegister(0xD, registerValues[0xD]);
+        chip8.writeRegister(0xE, registerValues[0xE]);
+        chip8.writeRegister(0xF, registerValues[0xF]);
+        chip8.i = REGISTER_I_VALUE;
+        const previousPC = chip8.pc;
+
         chip8.execute();
 
-        const ram = chip8.ram.readRange(0x204, 16);
-        expect(ram).toEqual(chip8.generalRegisters);
-        expect(chip8.programCounter).toBe(previousPC + 2);
+        const ram = chip8.readRAMRange(REGISTER_I_VALUE, registerValues.length);
+        expect(ram).toEqual(Uint8Array.from(registerValues));
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.i).toBe(REGISTER_I_VALUE + REGISTER_X + 1);
     });
 
     test('instruction Fx65 - LD Vx, [I]: Read registers V0 through Vx from memory starting at location I', () => {
         const prog = Uint8Array.from([0xFF, 0x65, 0x00, 0x00, 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8,
             0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF]);
-        const chip8 = Chip8.newChip8();
-        chip8.loadProgram(prog);
-        chip8.addressRegister = 0x204;
-        const previousPC = chip8.programCounter;
+        const REGISTER_X = 0xF;
+        const REGISTER_I_VALUE = 0x204;
+
+        chip8.loadROM(prog);
+        chip8.i = REGISTER_I_VALUE;
+        const previousPC = chip8.pc;
+
         chip8.execute();
 
         const ram = prog.subarray(4, 4 + 16);
-        expect(chip8.generalRegisters).toEqual(ram);
-        expect(chip8.programCounter).toBe(previousPC + 2);
+        expect(chip8.readRegister(0x0)).toBe(ram[0x0]);
+        expect(chip8.readRegister(0x1)).toBe(ram[0x1]);
+        expect(chip8.readRegister(0x2)).toBe(ram[0x2]);
+        expect(chip8.readRegister(0x3)).toBe(ram[0x3]);
+        expect(chip8.readRegister(0x4)).toBe(ram[0x4]);
+        expect(chip8.readRegister(0x5)).toBe(ram[0x5]);
+        expect(chip8.readRegister(0x6)).toBe(ram[0x6]);
+        expect(chip8.readRegister(0x7)).toBe(ram[0x7]);
+        expect(chip8.readRegister(0x8)).toBe(ram[0x8]);
+        expect(chip8.readRegister(0x9)).toBe(ram[0x9]);
+        expect(chip8.readRegister(0xA)).toBe(ram[0xA]);
+        expect(chip8.readRegister(0xB)).toBe(ram[0xB]);
+        expect(chip8.readRegister(0xC)).toBe(ram[0xC]);
+        expect(chip8.readRegister(0xD)).toBe(ram[0xD]);
+        expect(chip8.readRegister(0xE)).toBe(ram[0xE]);
+        expect(chip8.readRegister(0xF)).toBe(ram[0xF]);
+        expect(chip8.pc).toBe(previousPC + 2);
+        expect(chip8.i).toBe(REGISTER_I_VALUE + REGISTER_X + 1);
     });
 
     test.todo('run');
