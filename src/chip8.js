@@ -2,6 +2,7 @@ import { RAM } from "./ram.js";
 import { Registers } from "./registers.js";
 import InstructionDecoder from "./instructions/index.js";
 import fontSprites from "./font-sprites.js";
+import { timeout } from "./utils.js";
 
 const RAM_SIZE = 4096;
 const PROG_START_ADDR = 0x200;
@@ -42,6 +43,7 @@ export default class Chip8 {
     #screen;
     #keyboard;
     #isRunning;
+    #stopped;
 
     constructor() {
         this.#init();
@@ -77,6 +79,10 @@ export default class Chip8 {
 
     get st() {
         return this.#registers.read(Registers.SOUND);
+    }
+
+    set st(value) {
+        this.#registers.write(Registers.SOUND, value)
     }
 
     get sp() {
@@ -127,6 +133,10 @@ export default class Chip8 {
         this.#isRunning = true;
     }
 
+    exit() {
+        this.#stopped = true;
+    }
+
     readRegister(register) {
         return this.#registers.read(register);
     }
@@ -152,6 +162,19 @@ export default class Chip8 {
         instruction.execute(this);
     }
 
+    async run(frequency) {
+        const n = Math.floor(frequency * 0.017);
+        let last = Date.now();
+        while (true && !this.#stopped) {
+            if (this.#isRunning) {
+                this.#update(n);
+            }
+            let elapsed = Date.now() - last;
+            await timeout(17 - elapsed);
+            last = Date.now();
+        }
+    }
+
     #init() {
         this.#ram = RAM.newRAM(RAM_SIZE);
         this.#registers = Registers.newRegisters();
@@ -160,7 +183,16 @@ export default class Chip8 {
         this.#registers.write(Registers.SP, 0);
         this.#keyboard = new Keyboard();
         this.#isRunning = true;
+        this.#stopped = false;
         this.#loadSprites();
+    }
+
+    #update(n) {
+        if (this.dt > 0) this.dt--;
+        if (this.st > 0) this.st--;
+        for (let i = 0; i < n; i++) {
+            this.execute();
+        }
     }
 
     #loadSprites() {

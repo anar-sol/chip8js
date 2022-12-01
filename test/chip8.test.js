@@ -1044,5 +1044,159 @@ describe("Chip8", () => {
         expect(chip8.i).toBe(REGISTER_I_VALUE + REGISTER_X + 1);
     });
 
-    test.todo('run');
+    test("run", async () => {
+        const prog = Uint8Array.from([0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0,]);
+        const FREQUENCY = 118; // 2 instructions per 1/60 second or 17ms
+        const MS_PER_FRAME = 17;
+        const DELAY_TIMER_VALUE = 100;
+        const SOUND_TIMER_VALUE = 100;
+        const screen = {
+            clear: jest.fn(),
+        };
+
+        chip8.loadROM(prog);
+        const previousPC = chip8.pc;
+        chip8.screen = screen;
+        chip8.st = SOUND_TIMER_VALUE;
+        chip8.dt = DELAY_TIMER_VALUE;
+
+        Object.defineProperty(global, "performance", {
+            value: jest.fn(),
+            configurable: true,
+            writable: true
+        });
+        jest.useFakeTimers();
+        chip8.run(FREQUENCY);
+
+        expect(chip8.pc).toBe(previousPC + 4);
+        expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 1);
+        expect(chip8.st).toBe(SOUND_TIMER_VALUE - 1);
+
+        jest.advanceTimersByTime(MS_PER_FRAME);
+
+        return new Promise(resolve => { resolve(); }).then(() => {
+            expect(chip8.pc).toBe(previousPC + 8);
+            expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 2);
+            expect(chip8.st).toBe(SOUND_TIMER_VALUE - 2);
+        });
+    });
+
+    test("pause", async () => {
+        const prog = Uint8Array.from([0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0,]);
+        const FREQUENCY = 118; // 2 instructions per 1/60 second or 17ms
+        const MS_PER_FRAME = 17;
+        const DELAY_TIMER_VALUE = 100;
+        const SOUND_TIMER_VALUE = 100;
+        const screen = {
+            clear: jest.fn(),
+        };
+
+        chip8.loadROM(prog);
+        const previousPC = chip8.pc;
+        chip8.screen = screen;
+        chip8.st = SOUND_TIMER_VALUE;
+        chip8.dt = DELAY_TIMER_VALUE;
+
+        Object.defineProperty(global, "performance", {
+            value: jest.fn(),
+            configurable: true,
+            writable: true
+        });
+        jest.useFakeTimers();
+        chip8.run(FREQUENCY);
+
+        expect(chip8.pc).toBe(previousPC + 4);
+        expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 1);
+        expect(chip8.st).toBe(SOUND_TIMER_VALUE - 1);
+
+        chip8.pause();
+
+        jest.advanceTimersByTime(MS_PER_FRAME);
+
+        return new Promise(resolve => { resolve(); }).then(() => {
+            expect(chip8.pc).toBe(previousPC + 4);
+            expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 1);
+            expect(chip8.st).toBe(SOUND_TIMER_VALUE - 1);
+        });
+    });
+
+    test("resume", async () => {
+        const prog = Uint8Array.from([0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0,]);
+        const FREQUENCY = 118; // 2 instructions per 1/60 second or 17ms
+        const MS_PER_FRAME = 17;
+        const DELAY_TIMER_VALUE = 100;
+        const SOUND_TIMER_VALUE = 100;
+        const screen = {
+            clear: jest.fn(),
+        };
+
+        chip8.loadROM(prog);
+        const previousPC = chip8.pc;
+        chip8.screen = screen;
+        chip8.st = SOUND_TIMER_VALUE;
+        chip8.dt = DELAY_TIMER_VALUE;
+
+        Object.defineProperty(global, "performance", {
+            value: jest.fn(),
+            configurable: true,
+            writable: true
+        });
+        jest.useFakeTimers();
+        chip8.run(FREQUENCY);
+
+        expect(chip8.pc).toBe(previousPC + 4);
+        expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 1);
+        expect(chip8.st).toBe(SOUND_TIMER_VALUE - 1);
+
+        chip8.pause();
+        chip8.resume();
+
+        jest.advanceTimersByTime(MS_PER_FRAME);
+
+        return new Promise(resolve => { resolve(); }).then(() => {
+            expect(chip8.pc).toBe(previousPC + 8);
+            expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 2);
+            expect(chip8.st).toBe(SOUND_TIMER_VALUE - 2);
+        });
+    });
+
+    test("exit", async () => {
+        const prog = Uint8Array.from([0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0, 0x00, 0xE0,]);
+        const FREQUENCY = 118; // 2 instructions per 1/60 second or 17ms
+        const MS_PER_FRAME = 17;
+        const DELAY_TIMER_VALUE = 100;
+        const SOUND_TIMER_VALUE = 100;
+        const screen = {
+            clear: jest.fn(),
+        };
+
+        chip8.loadROM(prog);
+        const previousPC = chip8.pc;
+        chip8.screen = screen;
+        chip8.st = SOUND_TIMER_VALUE;
+        chip8.dt = DELAY_TIMER_VALUE;
+
+        Object.defineProperty(global, "performance", {
+            value: jest.fn(),
+            configurable: true,
+            writable: true
+        });
+        jest.useFakeTimers();
+        chip8.run(FREQUENCY);
+
+        expect(chip8.pc).toBe(previousPC + 4);
+        expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 1);
+        expect(chip8.st).toBe(SOUND_TIMER_VALUE - 1);
+
+        chip8.exit();
+        chip8.resume();
+
+        jest.advanceTimersByTime(MS_PER_FRAME);
+
+        return new Promise(resolve => { resolve(); }).then(() => {
+            expect(chip8.pc).toBe(previousPC + 4);
+            expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 1);
+            expect(chip8.st).toBe(SOUND_TIMER_VALUE - 1);
+        });
+    });
 });
