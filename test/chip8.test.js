@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import Chip8 from '../src/chip8.js';
-import { Chip8Exception } from '../src/~chip8.js';
 
 describe("Chip8", () => {
     let rom;
@@ -1194,9 +1193,9 @@ describe("Chip8", () => {
         jest.advanceTimersByTime(MS_PER_FRAME);
 
         return new Promise(resolve => { resolve(); }).then(() => {
-            expect(chip8.pc).toBe(previousPC + 4);
-            expect(chip8.dt).toBe(DELAY_TIMER_VALUE - 1);
-            expect(chip8.st).toBe(SOUND_TIMER_VALUE - 1);
+            expect(chip8.pc).toBe(previousPC);
+            expect(chip8.dt).toBe(0);
+            expect(chip8.st).toBe(0);
         });
     });
 });

@@ -37,7 +37,7 @@ import Keyboard from './keyboard.js';
 
     const chip8 = Chip8.newChip8();
     const screen = Screen.create(canvas);
-    chip8.setScreen(screen);
+    chip8.screen = screen;
     const keyboard = Keyboard.create(chip8);
 
     document.addEventListener('keydown', e => { keyboard.handle(e); });
@@ -66,8 +66,8 @@ import Keyboard from './keyboard.js';
                 return response.arrayBuffer();
             }).then(arrayBuffer => {
                 rom = new Uint8Array(arrayBuffer);
-                chip8.stop();
-                chip8.loadProgram(rom);
+                chip8.exit();
+                chip8.loadROM(rom);
                 helpLoading.classList.remove('chip8__help--active');
                 helpControls.classList.add('chip8__help--active');
             });
@@ -78,8 +78,8 @@ import Keyboard from './keyboard.js';
         if (!chip8.isRunning && rom !== null) {
             helpError.classList.remove('chip8__help--active');
             helpControls.classList.remove('chip8__help--active');
-            chip8.stop();
-            chip8.loadProgram(rom);
+            chip8.exit();
+            chip8.loadROM(rom);
             chip8.run(700);
         }
     });
@@ -87,7 +87,7 @@ import Keyboard from './keyboard.js';
     stopButton.addEventListener('click', () => {
         if (chip8.isRunning) {
             helpControls.classList.add('chip8__help--active');
-            chip8.stop();
+            chip8.exit();
         }
     });
 

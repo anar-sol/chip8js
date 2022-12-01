@@ -135,6 +135,7 @@ export default class Chip8 {
 
     exit() {
         this.#stopped = true;
+        this.#init();
     }
 
     readRegister(register) {
@@ -163,6 +164,8 @@ export default class Chip8 {
     }
 
     async run(frequency) {
+        this.#stopped = false;
+        this.#isRunning = true;
         const n = Math.floor(frequency * 0.017);
         let last = Date.now();
         while (true && !this.#stopped) {
@@ -182,9 +185,9 @@ export default class Chip8 {
         this.#registers.write(Registers.PC, PROG_START_ADDR);
         this.#registers.write(Registers.SP, 0);
         this.#keyboard = new Keyboard();
-        this.#isRunning = true;
-        this.#stopped = false;
+        this.#isRunning = false;
         this.#loadSprites();
+        if (this.#screen != null) this.#screen.clear(); 
     }
 
     #update(n) {
