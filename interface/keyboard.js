@@ -51,25 +51,25 @@ export default class Keyboard {
     handle(event) {
         switch (event.type) {
             case 'keydown': {
-                if (keyMapping.has(event.code)) this.chip8.pressKey(keyMapping.get(event.code));
+                if (keyMapping.has(event.code)) this.chip8.keyboard.pressKey(keyMapping.get(event.code));
                 break;
             }
             case 'keyup': {
-                if (keyMapping.has(event.code)) this.chip8.releaseKey(keyMapping.get(event.code));
+                if (keyMapping.has(event.code)) this.chip8.keyboard.releaseKey(keyMapping.get(event.code));
                 break;
             }
             case 'mousedown':
             case 'pointerdown': {
                 event.preventDefault();
                 const key = event.currentTarget.id;
-                if (buttonsMapping.has(key)) this.chip8.pressKey(buttonsMapping.get(key));
+                if (buttonsMapping.has(key)) this.chip8.keyboard.pressKey(buttonsMapping.get(key));
                 break;
             }
             case 'mouseup': 
             case 'pointerup': {
                 event.preventDefault();
                 const key = event.currentTarget.id;
-                if (buttonsMapping.has(key)) this.chip8.releaseKey(buttonsMapping.get(key));
+                if (buttonsMapping.has(key)) this.chip8.keyboard.releaseKey(buttonsMapping.get(key));
                 break;
             }
         }

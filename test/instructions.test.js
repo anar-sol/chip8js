@@ -570,7 +570,7 @@ describe("Instructions", () => {
     });
 
     test("execute 8xy7 - SUB Vx, Vy, registers instructions", () => {
-        const SUB_REGISTERS_INSTRUCTIONS = 0x86C5;
+        const SUB_REGISTERS_INSTRUCTIONS = 0x86C7;
         const REGISTER_X_VALUE = 0x10;
         const REGISTER_Y_VALUE = 0x1E;
         const EXPECTED_RESULT = REGISTER_Y_VALUE - REGISTER_X_VALUE;
@@ -1155,9 +1155,11 @@ describe("Instructions", () => {
         const chip8 = {
             pause: jest.fn(),
             resume: jest.fn(),
-            onKeyPressed: jest.fn(callback => {
-                chip8.callback = callback;
-            }),
+            keyboard: {
+                onKeyPressed: jest.fn(callback => {
+                    chip8.callback = callback;
+                }),
+            },
             registers: {
                 write: jest.fn(),
             }
@@ -1165,7 +1167,7 @@ describe("Instructions", () => {
 
         instruction.execute(chip8);
         expect(chip8.pause).toHaveBeenCalled();
-        expect(chip8.onKeyPressed).toHaveBeenCalledWith(expect.any(Function));
+        expect(chip8.keyboard.onKeyPressed).toHaveBeenCalledWith(expect.any(Function));
         expect(chip8.resume).toHaveBeenCalledTimes(0);
 
         chip8.callback(KEY_VALUE);
@@ -1292,7 +1294,7 @@ describe("Instructions", () => {
         expect(chip8.registers.read).toHaveBeenCalledWith(Registers.VC);
         expect(chip8.registers.read).toHaveBeenCalledWith(Registers.I);
 
-        expect(chip8.ram.writeRange).toHaveBeenCalledWith(REGISTER_I_VALUE, [3, 2, 1]);
+        expect(chip8.ram.writeRange).toHaveBeenCalledWith(REGISTER_I_VALUE, [1, 2, 3]);
     });
 
     test("execute Fx55 - LD I, Vx instruction", () => {
